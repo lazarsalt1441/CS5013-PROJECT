@@ -32,8 +32,9 @@ import java.util.TreeSet;
 /**
  * Default v2 solver: delegates the search to UniTime's course timetabling engine (cpsolver).
  *
- * <p>The search is UniTime's standard pipeline: iterative forward search construction guided by
- * conflict-based statistics, then hill climbing, then great deluge until the time or iteration limit.
+ * <p>The search is UniTime's "Deluge" course timetabling algorithm: iterative forward search
+ * construction guided by conflict-based statistics, then hill climbing, then great deluge with UniTime's
+ * stock time/room change, swap and suggestion moves, until the time or iteration limit.
  * It does not prove optimality, so a complete answer is reported as {@link SolveStatus#FEASIBLE}.
  */
 public final class UniTimeTimetableSolver implements TimetableSolver {
@@ -111,7 +112,7 @@ public final class UniTimeTimetableSolver implements TimetableSolver {
         long timePreference = Math.round(built.model().getCriterion(TimePreferences.class).getValue(best));
         long studentOverlaps = Math.round(built.model().getCriterion(StudentOverlapConflict.class).getValue(best));
         List<String> diagnostics = new ArrayList<>(List.of(
-                "UniTime (cpsolver) search: construction + hill climbing + great deluge",
+                "UniTime (cpsolver) search: IFS construction + hill climbing + great deluge",
                 "Iterations: " + solution.getIteration(),
                 "Best solution found at iteration " + solution.getBestIteration()
                         + " after " + String.format("%.3f s", solution.getBestTime()),
@@ -168,8 +169,21 @@ public final class UniTimeTimetableSolver implements TimetableSolver {
         properties.setProperty("Termination.StopWhenComplete", "false");
         properties.setProperty("Termination.TimeOut", Double.toString(timeLimitSeconds));
         properties.setProperty("Termination.MaxIters", Long.toString(maxIterations));
+        // UniTime's "Deluge" course timetabling algorithm (General.SearchAlgorithm=Deluge in
+        // CourseTimetablingSolverService): IFS construction guided by conflict-based statistics, then hill
+        // climbing, then great deluge, using UniTime's stock neighbourhoods. On the generated scenarios it
+        // matched or beat UniTime's "Default" IFS on 12 of 14 (see docs_v2/TEST_PLAN.md).
         properties.setProperty("Neighbour.Class", "org.cpsolver.ifs.algorithms.SimpleSearch");
         properties.setProperty("Search.GreatDeluge", "true");
+        String moves = String.join(";",
+                "org.cpsolver.coursett.neighbourhoods.TimeChange",
+                "org.cpsolver.coursett.neighbourhoods.RoomChange",
+                "org.cpsolver.coursett.neighbourhoods.TimeSwap@0.01",
+                "org.cpsolver.coursett.neighbourhoods.RoomSwap@0.01",
+                "org.cpsolver.coursett.neighbourhoods.Suggestion@0.01");
+        properties.setProperty("HillClimber.MaxIdle", "10000");
+        properties.setProperty("HillClimber.AdditionalNeighbours", moves);
+        properties.setProperty("GreatDeluge.AdditionalNeighbours", moves);
         properties.setProperty("Value.Class", "org.cpsolver.coursett.heuristics.PlacementSelection");
         properties.setProperty("Variable.Class", "org.cpsolver.coursett.heuristics.LectureSelection");
         properties.setProperty("Extensions.Classes", "org.cpsolver.ifs.extension.ConflictStatistics");
