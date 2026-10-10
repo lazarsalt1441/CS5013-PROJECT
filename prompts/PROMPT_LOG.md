@@ -15,13 +15,10 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P007 | Audit the repository and GitHub workflow before further changes | Accepted | no code change |
 | P008 | Explain the timetable pipeline and publish the file-structure tree | Accepted | `7abd006` |
 | P009 | Build a generated-scenario testing framework and penalty report | Accepted | `efdf10d`..`e4e7ca9` |
-| P010 | Commit policy: one commit per coherent change | Accepted | applied from `efdf10d` |
-| P011 | Install the toolchain and run the tests and CLI locally | Accepted | no code change |
-| P012 | Compare the project with UniTime and list improvements | Accepted | analysis; led to P006 |
-| P013 | Summarise the UniTime vs CP-SAT comparison in the READMEs | Accepted | `001b602` |
-| P014 | Record this session's prompts in this log | Accepted | this commit |
+| P010 | Install the toolchain and run the tests and CLI locally | Accepted | no code change |
+| P011 | Compare the project with UniTime and list improvements | Accepted | analysis; led to P006 |
 
-P006–P014 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P012, P006, P013, P014. P006 keeps its number because commit `3c9d6cb` refers to it.
+P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it.
 
 ## P001 - Project architecture and workflow
 
@@ -216,14 +213,6 @@ P006–P014 were all written on 10 October 2026. In order of use they ran P007, 
 
 ## P006 - UniTime wrapper (v2)
 
-### Original prompt
-
-> remove all the solving from this , and make it a wrapper around UNITIME Instead , such that it makes use of the optimisations done in that while still holding the use case i want rename the documentation of the previous thing to docs_v1 and make seperate similarly documented docs_v2 for the wrapper version
->
-> be in plan mode -- ask me all the questions you have about it , then convert to auto mode to build
-
-The prompt deliberately asked for a planning phase first, so that design decisions were made by the developer before any code was written.
-
 ### CoSTAR prompt
 
 **Context:** v1 solves the slotbook with its own OR-Tools CP-SAT model. UniTime is an open-source university timetabling system. Its solver library, cpsolver, is on Maven Central and implements competition-proven course timetabling search.
@@ -291,7 +280,6 @@ See [docs_v2/DEBUGGING.md](../docs_v2/DEBUGGING.md) for these problems:
 
 ## P007 - Repository and GitHub workflow audit
 
-
 ### CoSTAR prompt
 
 **Context:** An existing Maven project with five commits, about to receive further AI-assisted changes during a working session.
@@ -329,6 +317,7 @@ Added at review:
 - `git ls-remote` succeeded against `origin`, the branch was in sync, and the working tree was clean.
 
 ## P008 - Pipeline walkthrough and file-structure tree
+
 ### CoSTAR prompt
 
 **Context:** The v1 CP-SAT slotbook: parser, validator, solver, explanation builder, exporter, CLI and JavaFX.
@@ -360,6 +349,7 @@ Added at review:
 - `docs/FILE_STRUCTURE.md` was committed as `7abd006` and pushed.
 
 ## P009 - Generated-scenario testing framework
+
 ### CoSTAR prompt
 
 **Context:** 13 JUnit tests check the solver on one fixture. Nothing checks whether its objective value is correct, or how the penalty behaves on other data.
@@ -399,6 +389,7 @@ Added at review:
 - The penalty table for 14 scenarios is printed in the test output and written to `target/penalty-report/penalty_report.csv`.
 
 ## P010 - Local toolchain and run
+
 ### CoSTAR prompt
 
 **Context:** Maven was not installed on the development machine; tests had been run with a temporary copy.
@@ -426,7 +417,7 @@ Added at review:
 - Maven 3.9.9 was installed under the user profile after the SHA-512 matched Apache's published value.
 - 41 tests passed. The CLI produced an `OPTIMAL` timetable with penalty 17 and both exports.
 
-## P012 - Comparison with UniTime
+## P011 - Comparison with UniTime
 
 ### CoSTAR prompt
 
