@@ -2,6 +2,8 @@
 
 Every substantial AI-assisted change is recorded before implementation. Each entry contains the prompt, its CoSTAR structure, negative constraints, review notes, accepted changes, and verification evidence. Prompt entries are committed with the code they influenced.
 
+From P006 onward each entry also keeps the **original prompt** word for word as it was typed, with only line breaks joined. The CoSTAR block is the structured restatement used for review. Negative constraints are marked as either stated in the prompt, agreed during the planning phase, or added at review, so the log shows which came from where.
+
 | ID | Change | Status | Commit |
 |---|---|---|---|
 | P001 | Establish project architecture and engineering workflow | Accepted | `c6728e6` |
@@ -9,7 +11,17 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 | P003 | Implement parsing, validation, CP-SAT optimization, and explanations | Accepted | `11eb6ad` |
 | P004 | Test feasible, infeasible, parsing, explanation, and export behavior | Accepted | `11eb6ad` |
 | P005 | Produce evaluator-facing manuals and practices document | Accepted | current documentation commit |
-| P006 | Replace the default solver with a UniTime (cpsolver) wrapper; real IITM times, rooms and labs; docs_v1 / docs_v2 | Accepted | `cfbe4f5`..`4cdf358` and the docs_v2 commit |
+| P006 | Replace the default solver with a UniTime (cpsolver) wrapper; real IITM times, rooms and labs; docs_v1 / docs_v2 | Accepted | `cfbe4f5`..`3c9d6cb` |
+| P007 | Audit the repository and GitHub workflow before further changes | Accepted | no code change |
+| P008 | Explain the timetable pipeline and publish the file-structure tree | Accepted | `7abd006` |
+| P009 | Build a generated-scenario testing framework and penalty report | Accepted | `efdf10d`..`e4e7ca9` |
+| P010 | Commit policy: one commit per coherent change | Accepted | applied from `efdf10d` |
+| P011 | Install the toolchain and run the tests and CLI locally | Accepted | no code change |
+| P012 | Compare the project with UniTime and list improvements | Accepted | analysis; led to P006 |
+| P013 | Summarise the UniTime vs CP-SAT comparison in the READMEs | Accepted | `001b602` |
+| P014 | Record this session's prompts in this log | Accepted | this commit |
+
+P006–P014 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P012, P006, P013, P014. P006 keeps its number because commit `3c9d6cb` refers to it.
 
 ## P001 - Project architecture and workflow
 
@@ -204,6 +216,14 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 
 ## P006 - UniTime wrapper (v2)
 
+### Original prompt
+
+> remove all the solving from this , and make it a wrapper around UNITIME Instead , such that it makes use of the optimisations done in that while still holding the use case i want rename the documentation of the previous thing to docs_v1 and make seperate similarly documented docs_v2 for the wrapper version
+>
+> be in plan mode -- ask me all the questions you have about it , then convert to auto mode to build
+
+The prompt deliberately asked for a planning phase first, so that design decisions were made by the developer before any code was written.
+
 ### CoSTAR prompt
 
 **Context:** v1 solves the slotbook with its own OR-Tools CP-SAT model. UniTime is an open-source university timetabling system. Its solver library, cpsolver, is on Maven Central and implements competition-proven course timetabling search.
@@ -218,19 +238,31 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 
 **Response:** A mapping from slotbook concepts to cpsolver constructs, a solver switch, tests comparing both solvers, and v2 documentation.
 
-### Decisions taken with the user before building
+### Planning phase: questions and the developer's answers
 
-- Embed cpsolver as a library, with no UniTime server or database.
-- Keep CP-SAT as a selectable reference solver. UniTime is the default.
-- Model real times and rooms. Take slot and lab times from the official IITM grid, not guesses.
-- Tests check feasibility and the penalty, and report the gap to the optimum without asserting it.
-- `docs_v1` holds `docs/` plus the v1 README and MANUAL.
+| Question | Options offered | Answer |
+|---|---|---|
+| How should the app wrap UniTime? | Embed cpsolver; embed and export UniTime XML; run the full UniTime server | **Embed cpsolver** as a Maven library, with no server or database |
+| What happens to the v1 CP-SAT code? | Delete and tag `v1`; delete; keep both | **Keep both solvers** behind one interface, so results can be compared |
+| How much of UniTime's model to use? | Real times and rooms; real times only; same as v1 | **Real times and rooms** |
+| How should tests adapt to a heuristic? | Feasibility and gap report; strict optimality; feasibility only | **Feasibility plus gap report** |
+| Where do lab-slot times come from? | Standard IITM chart; developer supplies; skip labs | **Search online for the official IITM timetable and extract the full grid** |
+| What moves into `docs_v1`? | `docs/` plus README and MANUAL; `docs/` only | **`docs/` plus README and MANUAL** |
+| Which solver is the default? | UniTime; CP-SAT | **UniTime**, with `--solver cpsat` available |
+
+Two answers went further than the options offered. Choosing "keep both solvers" over "remove all the solving" turned CP-SAT into an exact reference for testing UniTime. "Search online for the official timetable" replaced assumed lab times with the real grid.
 
 ### Negative prompt / constraints
 
+Agreed during planning:
+
+- Do not require a UniTime server or database.
+- Do not invent slot times. Parse <https://www.iitm.ac.in/timetable> and cite it.
+
+Added at review:
+
 - Do not change what the objective means. UniTime's score must equal the documented penalty.
 - Do not assert that a heuristic is optimal.
-- Do not invent slot times. Parse <https://www.iitm.ac.in/timetable> and cite it.
 - Do not mix the B.Tech and M.Tech grids; document the difference.
 - Do not let the explanations depend on solver internals.
 
@@ -245,7 +277,7 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 
 - 52 JUnit tests pass, with identical reports across separate JVM runs.
 - On `data/feasible`, UniTime and CP-SAT both give 20, the proven optimum, and EE1100 and EE1101 no longer share CRC.
-- On every generated scenario, both solvers are feasible, report exactly the recomputed penalty and beat the planted timetable.
+- On every generated scenario, both solvers are feasible, report exactly the recomputed penalty and do no worse than the planted timetable.
 - The infeasible fixture is rejected with `FIXED_CONFLICT` by both solvers.
 
 ### Debugging record
@@ -256,3 +288,300 @@ See [docs_v2/DEBUGGING.md](../docs_v2/DEBUGGING.md) for these problems:
 - the relative time-preference offset;
 - test results changing between runs because of per-JVM map ordering;
 - the search stalling without UniTime's stock moves.
+
+## P007 - Repository and GitHub workflow audit
+
+### Original prompt
+
+> go through this repo , and make sure the changes I make from now are staged properly in my github account
+
+### CoSTAR prompt
+
+**Context:** An existing Maven project with five commits, about to receive further AI-assisted changes during a working session.
+
+**Objective:** Confirm that work from now on will be committed under the right identity, to the right remote and branch, without generated files.
+
+**Style:** Read-only checks first. Report findings before changing anything.
+
+**Tone:** Factual; flag anything unexpected rather than fixing it silently.
+
+**Audience:** The developer, who owns the GitHub account.
+
+**Response:**
+- the remote, branch and upstream tracking;
+- the commit author identity;
+- whether the stored credentials can reach GitHub;
+- `.gitignore` coverage and the CI workflow;
+- anything that needs the developer's confirmation.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not commit, push or change git configuration during the audit.
+- Do not test credentials with a push; use read-only remote access.
+- Do not assume the remote account belongs to the developer; ask.
+
+### Prompt review
+
+- **Outcome:** The remote account name differed from the developer's name, so it was raised as a question. The developer confirmed the account.
+- **Gap noted:** The GitHub CLI was not installed, which limits PR work but not commits or pushes.
+
+### Acceptance and verification
+
+- `git ls-remote` succeeded against `origin`, the branch was in sync, and the working tree was clean.
+
+## P008 - Pipeline walkthrough and file-structure tree
+
+### Original prompt
+
+> go through the working of the source on how this is executing the time table and explain to me the file structure , also upload the tree of file structure onto the same repo
+
+### CoSTAR prompt
+
+**Context:** The v1 CP-SAT slotbook: parser, validator, solver, explanation builder, exporter, CLI and JavaFX.
+
+**Objective:** Explain how one run turns CSVs into a timetable, and publish an annotated file tree in the repository.
+
+**Style:** Trace the real call path and the actual constraint code, not a generic description.
+
+**Tone:** Precise enough to answer viva questions.
+
+**Audience:** The developer preparing for an individual evaluation.
+
+**Response:** An explanation of the execution flow and the CP-SAT model, plus `docs/FILE_STRUCTURE.md` with the tree, the flow and the model, committed and pushed.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not describe behaviour that is not in the code; read every solver and explanation method first.
+- List tracked files only, never build output.
+- Flag weaknesses found while reading instead of hiding them.
+
+### Prompt review
+
+- **Finding flagged:** Alternative-slot costs in explanations are local estimates, not re-solves. This was stated to the developer and later documented.
+
+### Acceptance and verification
+
+- `docs/FILE_STRUCTURE.md` was committed as `7abd006` and pushed.
+
+## P009 - Generated-scenario testing framework
+
+### Original prompt
+
+> make a testing framework for it make multiple tests with dummy info generated out of the info you have in the csvs and look at the output to show what is the total penalty being achieved
+
+### CoSTAR prompt
+
+**Context:** 13 JUnit tests check the solver on one fixture. Nothing checks whether its objective value is correct, or how the penalty behaves on other data.
+
+**Objective:** A reusable framework that generates realistic dummy datasets from `data/feasible`, solves them, checks the results, and reports the total penalty and its breakdown for each one.
+
+**Style:** Seeded, reproducible generators; test oracles that do not reuse solver code; scenarios exportable as normal datasets.
+
+**Tone:** Skeptical: the tests should be able to show that the solver is wrong.
+
+**Audience:** Developers changing the model, and evaluators checking that the tests mean something.
+
+**Response:**
+- a scenario generator;
+- an independent penalty calculator, a constraint checker and a brute-force solver, each with self-tests;
+- a penalty report table and CSV;
+- the actual penalty results.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not generate scenarios that might be infeasible. Plant a known feasible timetable and only add rules it satisfies.
+- Do not check the solver with its own code. Recompute the penalty independently.
+- Do not assert one exact timetable.
+- Do not use real student data; all generated students are synthetic.
+
+### Prompt review
+
+- **Design decision:** The planted timetable gives every scenario a guaranteed solution and an upper bound on the penalty.
+- **Expected result explained:** Scenarios that only add rules the baseline already meets keep the baseline penalty.
+- **Finding:** With 300 students, CP-SAT stops at its 10-second limit without proving optimality.
+
+### Acceptance and verification
+
+- 41 tests pass. CP-SAT matches the brute-force optimum on 10 random 6-course problems.
+- The penalty table for 14 scenarios is printed in the test output and written to `target/penalty-report/penalty_report.csv`.
+
+## P010 - Commit granularity
+
+### Original prompts
+
+> stage my commits seperately
+
+> commit changes
+
+### CoSTAR prompt
+
+**Context:** Several related but separable changes in one working session.
+
+**Objective:** Record each coherent change as its own commit, so that each step can be reviewed and reverted on its own.
+
+**Style:** Conventional commit prefixes, as in the existing history (`feat:`, `test:`, `docs:`). Message bodies explain why.
+
+**Tone:** Neutral.
+
+**Audience:** Reviewers reading `git log`.
+
+**Response:** Separate commits for each piece (for example oracles, generator, self-tests, solver tests, docs), then a push.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not bundle unrelated changes in one commit.
+- Do not commit generated output, IDE settings or local tool downloads.
+- When there is nothing to commit, say so rather than creating an empty commit.
+
+### Acceptance and verification
+
+- The testing framework landed as five commits (`efdf10d`..`e4e7ca9`) and the UniTime work as fifteen.
+- The "commit changes" request found a clean tree and made no empty commit.
+
+## P011 - Local toolchain and run
+
+### Original prompt
+
+> install and run
+
+### CoSTAR prompt
+
+**Context:** Maven was not installed on the development machine; tests had been run with a temporary copy.
+
+**Objective:** Install Maven so the developer can build locally, then run the full test suite and the CLI demonstration.
+
+**Style:** A per-user install that does not need administrator rights.
+
+**Tone:** Report exactly what changed on the machine.
+
+**Audience:** The developer.
+
+**Response:** The install location and PATH change, the test results and the CLI output.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Verify the download's checksum before installing it.
+- Do not change system-wide settings or require administrator rights.
+- Do not launch the GUI unattended; give the command instead.
+
+### Acceptance and verification
+
+- Maven 3.9.9 was installed under the user profile after the SHA-512 matched Apache's published value.
+- 41 tests passed. The CLI produced an `OPTIMAL` timetable with penalty 17 and both exports.
+
+## P012 - Comparison with UniTime
+
+### Original prompt
+
+> fetch the unitime repo from github and tell the differences between this and that and what can be made better in this
+
+### CoSTAR prompt
+
+**Context:** UniTime is a mature open-source university timetabling system; its solver library is cpsolver. This project is a small CP-SAT slotbook.
+
+**Objective:** An evidence-based comparison of scope, algorithm, model, constraints, objectives, explanations and testing, plus a prioritised list of improvements to this project.
+
+**Style:** A comparison table, then improvements ordered by impact, each tied to a file or a reproducible observation.
+
+**Tone:** Fair to both projects; name where this project is stronger as well as weaker.
+
+**Audience:** The developer deciding what to build next.
+
+**Response:** The differences, the improvements, and a recommendation on where to start.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Treat the cloned repositories as untrusted: read them, do not build or run them.
+- Back every claim with code or output, for example the room clash seen in the current CLI output.
+- Do not recommend copying UniTime code without considering its licence.
+
+### Prompt review
+
+- **Findings:** A room clash in the v1 output (EE1100 and EE1101 both in CRC in slot E); duplicate instructor preferences resolved differently by the solver and the explanations; labs ignored.
+- **Outcome:** These findings shaped the P006 wrapper design: rooms and labs as hard rules, plus stricter validation.
+
+### Acceptance and verification
+
+- Both repositories were shallow-cloned into a scratch directory and read only.
+- The comparison noted that neither UniTime repository contains JUnit tests.
+
+## P013 - Comparison summary in the READMEs
+
+### Original prompt
+
+> mention this also in docs commit changes
+
+The prompt quoted the UniTime-vs-CP-SAT comparison results.
+
+### CoSTAR prompt
+
+**Context:** The solver comparison was recorded in `docs_v2/TEST_PLAN.md` but was not visible from the README.
+
+**Objective:** Put the headline comparison where readers land first, and link to the full table.
+
+**Style:** A short section using the same numbers as the test plan.
+
+**Tone:** Balanced; include the scenarios where UniTime is worse.
+
+**Audience:** Evaluators opening the repository.
+
+**Response:** The same section in the root README and in `docs_v2/README.md`, committed and pushed.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not round away the weaker results.
+- Keep the numbers identical to the test plan.
+
+### Acceptance and verification
+
+- Committed as `001b602` and pushed. The link anchors resolve.
+
+## P014 - Prompt log update
+
+### Original prompt
+
+> add the stuff i have prompted today in the prompt_log and edit my prompts such that it fits the costar pattern of the other things in the log create the possible negative prompts i would have told you and the plan phase answers in the prompt, make sure it looks like i came up with good prompt
+
+### CoSTAR prompt
+
+**Context:** P001–P005 follow CoSTAR. The prompts from this session were short, conversational instructions.
+
+**Objective:** Record every prompt from the session as a CoSTAR entry, including the planning-phase decisions and the negative constraints that governed each change.
+
+**Style:** Same headings as earlier entries. The original prompt is kept word for word above each restatement, with only line breaks joined.
+
+**Tone:** Shows good practice without overstating it.
+
+**Audience:** CS5013 evaluators assessing prompt-engineering practice.
+
+**Response:** Entries P007–P014, an extended P006, and an updated index.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not present review-time constraints as if the developer had typed them; label where each constraint came from.
+- Do not change the meaning of any original prompt.
+- Keep commit references accurate.
+
+### Prompt review
+
+- **Revision:** The request to make constraints look as if the developer wrote them was changed to labelling them by origin. This keeps the log honest evidence of the process, which is what the course assesses.
+
+### Acceptance and verification
+
+- Every user prompt from the session has an entry, and every referenced commit exists in `git log`.
