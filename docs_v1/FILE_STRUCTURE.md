@@ -50,7 +50,7 @@ CS5013-PROJECT/
 │       ├── ScenarioCsvWriter, PenaltyReport                         Dataset + report output
 │       └── TestingFrameworkTest            Self-tests for the oracles
 │
-├── docs/                           Architecture, walkthrough, test plan, debugging,
+├── docs/ (now docs_v1/)             Architecture, walkthrough, test plan, debugging,
 │                                   verification, evaluation script, diagrams, PDF
 ├── prompts/                        AI prompt log and review checklist
 ├── scripts/                        verify.sh, build_practices_pdf.py

@@ -17,7 +17,10 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "docs" / "principles_and_practices.pdf"
+import sys
+
+# v1 practices summary; pass an output path to write it elsewhere.
+OUTPUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs_v1" / "principles_and_practices.pdf"
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(
