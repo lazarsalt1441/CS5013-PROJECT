@@ -15,6 +15,16 @@ Documentation: [docs_v2](docs_v2/README.md) describes this version; [docs_v1](do
 | Validation | 9 checks | 18 checks, including duplicate or negative preferences and lab clashes |
 | Tests | 41 | 52, comparing both solvers on every scenario |
 
+## How UniTime compares (from the tests)
+
+Every generated test scenario is solved by both UniTime and the exact CP-SAT solver:
+
+- UniTime matched CP-SAT's proven best in 10 of the 13 scenarios CP-SAT fully solved. The other three were higher by 1, 8 and 4 points. The worst, 15%, is the scenario where 7 instructors share all 18 courses.
+- On the 300-student scenario it did better than CP-SAT, 259 vs 261, because CP-SAT ran out of time.
+- It found the exact best on all 10 small problems that can be checked exhaustively.
+
+The full table is in [the test plan](docs_v2/TEST_PLAN.md#solver-comparison).
+
 ## Scope
 
 The demonstrator uses an anonymized/mock subset inspired by the January–May 2025 EE slotbook. Course metadata resembles the supplied administrative sheet; student selections, instructor preferences, conflict weights and availability restrictions are synthetic test fixtures. Slot times follow the official grid at <https://www.iitm.ac.in/timetable>.
