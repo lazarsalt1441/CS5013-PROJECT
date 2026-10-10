@@ -1,6 +1,8 @@
 package in.ac.iitm.slotbook.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +40,10 @@ public record TimetableProblem(
         return new TimeGrid(slots);
     }
 
-    /** Number of synthetic/anonymized students requesting each pair of courses. */
+    /**
+     * Rank-weighted number of synthetic/anonymized students requesting each pair of courses.
+     * Iteration order is sorted by course pair, so models built from it are identical on every run.
+     */
     public Map<CoursePair, Integer> studentPairWeights() {
         Map<String, List<StudentSelection>> byStudent = new HashMap<>();
         for (StudentSelection selection : studentSelections) {
@@ -59,7 +64,12 @@ public record TimetableProblem(
                 }
             }
         }
-        return Map.copyOf(weights);
+        Map<CoursePair, Integer> sorted = new LinkedHashMap<>();
+        weights.entrySet().stream()
+                .sorted(Comparator.comparing((Map.Entry<CoursePair, Integer> entry) -> entry.getKey().first())
+                        .thenComparing(entry -> entry.getKey().second()))
+                .forEach(entry -> sorted.put(entry.getKey(), entry.getValue()));
+        return Collections.unmodifiableMap(sorted);
     }
 }
 

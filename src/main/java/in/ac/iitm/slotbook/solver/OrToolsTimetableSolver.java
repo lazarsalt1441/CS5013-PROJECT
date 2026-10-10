@@ -22,7 +22,6 @@ import in.ac.iitm.slotbook.model.ValidationIssue;
 import in.ac.iitm.slotbook.validation.InputValidator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +170,7 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
 
     private void addInstructorCollisionConstraints(
             TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
-        Map<String, List<Course>> byInstructor = new HashMap<>();
+        Map<String, List<Course>> byInstructor = new LinkedHashMap<>();
         for (Course course : problem.courses()) {
             byInstructor.computeIfAbsent(course.instructor(), ignored -> new ArrayList<>()).add(course);
         }
@@ -180,7 +179,7 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
 
     private void addRoomCollisionConstraints(
             TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
-        Map<String, List<Course>> byRoom = new HashMap<>();
+        Map<String, List<Course>> byRoom = new LinkedHashMap<>();
         for (Course course : problem.courses()) {
             if (course.hasRoom()) {
                 byRoom.computeIfAbsent(course.room().toUpperCase(), ignored -> new ArrayList<>()).add(course);
