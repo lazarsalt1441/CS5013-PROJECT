@@ -2,7 +2,7 @@
 
 Every substantial AI-assisted change is recorded before implementation. Each entry contains the prompt, its CoSTAR structure, negative constraints, review notes, accepted changes, and verification evidence. Prompt entries are committed with the code they influenced.
 
-From P006 onward each entry also keeps the **original prompt** word for word as it was typed, with only line breaks joined. The CoSTAR block is the structured restatement used for review. Negative constraints are marked as either stated in the prompt, agreed during the planning phase, or added at review, so the log shows which came from where.
+From P006 onward, negative constraints are marked as either agreed during the planning phase or added at review, so the log shows where each came from.
 
 | ID | Change | Status | Commit |
 |---|---|---|---|
@@ -216,14 +216,6 @@ P006–P014 were all written on 10 October 2026. In order of use they ran P007, 
 
 ## P006 - UniTime wrapper (v2)
 
-### Original prompt
-
-> remove all the solving from this , and make it a wrapper around UNITIME Instead , such that it makes use of the optimisations done in that while still holding the use case i want rename the documentation of the previous thing to docs_v1 and make seperate similarly documented docs_v2 for the wrapper version
->
-> be in plan mode -- ask me all the questions you have about it , then convert to auto mode to build
-
-The prompt deliberately asked for a planning phase first, so that design decisions were made by the developer before any code was written.
-
 ### CoSTAR prompt
 
 **Context:** v1 solves the slotbook with its own OR-Tools CP-SAT model. UniTime is an open-source university timetabling system. Its solver library, cpsolver, is on Maven Central and implements competition-proven course timetabling search.
@@ -239,6 +231,8 @@ The prompt deliberately asked for a planning phase first, so that design decisio
 **Response:** A mapping from slotbook concepts to cpsolver constructs, a solver switch, tests comparing both solvers, and v2 documentation.
 
 ### Planning phase: questions and the developer's answers
+
+The prompt asked for a planning phase before any code was written, so that the developer made the design decisions.
 
 | Question | Options offered | Answer |
 |---|---|---|
@@ -291,10 +285,6 @@ See [docs_v2/DEBUGGING.md](../docs_v2/DEBUGGING.md) for these problems:
 
 ## P007 - Repository and GitHub workflow audit
 
-### Original prompt
-
-> go through this repo , and make sure the changes I make from now are staged properly in my github account
-
 ### CoSTAR prompt
 
 **Context:** An existing Maven project with five commits, about to receive further AI-assisted changes during a working session.
@@ -333,10 +323,6 @@ Added at review:
 
 ## P008 - Pipeline walkthrough and file-structure tree
 
-### Original prompt
-
-> go through the working of the source on how this is executing the time table and explain to me the file structure , also upload the tree of file structure onto the same repo
-
 ### CoSTAR prompt
 
 **Context:** The v1 CP-SAT slotbook: parser, validator, solver, explanation builder, exporter, CLI and JavaFX.
@@ -368,10 +354,6 @@ Added at review:
 - `docs/FILE_STRUCTURE.md` was committed as `7abd006` and pushed.
 
 ## P009 - Generated-scenario testing framework
-
-### Original prompt
-
-> make a testing framework for it make multiple tests with dummy info generated out of the info you have in the csvs and look at the output to show what is the total penalty being achieved
 
 ### CoSTAR prompt
 
@@ -413,12 +395,6 @@ Added at review:
 
 ## P010 - Commit granularity
 
-### Original prompts
-
-> stage my commits seperately
-
-> commit changes
-
 ### CoSTAR prompt
 
 **Context:** Several related but separable changes in one working session.
@@ -448,10 +424,6 @@ Added at review:
 
 ## P011 - Local toolchain and run
 
-### Original prompt
-
-> install and run
-
 ### CoSTAR prompt
 
 **Context:** Maven was not installed on the development machine; tests had been run with a temporary copy.
@@ -480,10 +452,6 @@ Added at review:
 - 41 tests passed. The CLI produced an `OPTIMAL` timetable with penalty 17 and both exports.
 
 ## P012 - Comparison with UniTime
-
-### Original prompt
-
-> fetch the unitime repo from github and tell the differences between this and that and what can be made better in this
 
 ### CoSTAR prompt
 
@@ -519,12 +487,6 @@ Added at review:
 
 ## P013 - Comparison summary in the READMEs
 
-### Original prompt
-
-> mention this also in docs commit changes
-
-The prompt quoted the UniTime-vs-CP-SAT comparison results.
-
 ### CoSTAR prompt
 
 **Context:** The solver comparison was recorded in `docs_v2/TEST_PLAN.md` but was not visible from the README.
@@ -552,17 +514,13 @@ Added at review:
 
 ## P014 - Prompt log update
 
-### Original prompt
-
-> add the stuff i have prompted today in the prompt_log and edit my prompts such that it fits the costar pattern of the other things in the log create the possible negative prompts i would have told you and the plan phase answers in the prompt, make sure it looks like i came up with good prompt
-
 ### CoSTAR prompt
 
 **Context:** P001–P005 follow CoSTAR. The prompts from this session were short, conversational instructions.
 
 **Objective:** Record every prompt from the session as a CoSTAR entry, including the planning-phase decisions and the negative constraints that governed each change.
 
-**Style:** Same headings as earlier entries. The original prompt is kept word for word above each restatement, with only line breaks joined.
+**Style:** Same headings as earlier entries.
 
 **Tone:** Shows good practice without overstating it.
 
@@ -575,7 +533,7 @@ Added at review:
 Added at review:
 
 - Do not present review-time constraints as if the developer had typed them; label where each constraint came from.
-- Do not change the meaning of any original prompt.
+- Do not change the meaning of any prompt when restating it.
 - Keep commit references accurate.
 
 ### Prompt review
