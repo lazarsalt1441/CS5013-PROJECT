@@ -6,6 +6,7 @@ import in.ac.iitm.slotbook.model.HardConflict;
 import in.ac.iitm.slotbook.model.InstructorPreference;
 import in.ac.iitm.slotbook.model.Slot;
 import in.ac.iitm.slotbook.model.StudentSelection;
+import in.ac.iitm.slotbook.model.TimeGrid;
 import in.ac.iitm.slotbook.model.TimetableProblem;
 
 import java.util.ArrayList;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
  * Derives seeded dummy scenarios from a real dataset.
  *
  * <p>Every perturbation keeps a planted assignment feasible: restricted slot sets always contain
- * the planted slot, generated conflicts only join courses planted in different slots, and shared
- * instructors only teach courses planted in different slots. Generated problems are therefore
+ * the planted slot, generated conflicts only join courses whose planted times do not overlap, and shared
+ * instructors only teach courses whose planted times do not overlap. Generated problems are therefore
  * guaranteed solvable, and the planted penalty is an upper bound on the optimum.
  */
 public final class ScenarioGenerator {
@@ -33,6 +34,7 @@ public final class ScenarioGenerator {
     private final Map<String, String> planted;
     private final List<String> slotIds;
     private final List<String> instructors;
+    private final TimeGrid grid;
 
     /** @param planted a feasible assignment for {@code base}, typically the solver's baseline answer */
     public ScenarioGenerator(TimetableProblem base, Map<String, String> planted) {
@@ -41,7 +43,8 @@ public final class ScenarioGenerator {
         }
         this.base = base;
         this.planted = Map.copyOf(planted);
-        this.slotIds = base.slots().stream().map(Slot::id).toList();
+        this.slotIds = base.slots().stream().filter(slot -> !slot.isLab()).map(Slot::id).toList();
+        this.grid = base.timeGrid();
         this.instructors = base.courses().stream().map(Course::instructor).distinct().toList();
     }
 
@@ -150,7 +153,7 @@ public final class ScenarioGenerator {
         for (int attempt = 0, added = 0; added < count && attempt < count * 50; attempt++) {
             Course a = courses.get(random.nextInt(courses.size()));
             Course b = courses.get(random.nextInt(courses.size()));
-            if (a.id().equals(b.id()) || planted.get(a.id()).equals(planted.get(b.id()))) continue;
+            if (a.id().equals(b.id()) || grid.clash(a, planted.get(a.id()), b, planted.get(b.id()))) continue;
             if (existing.add(new CoursePair(a.id(), b.id()))) {
                 conflicts.add(new HardConflict(a.id(), b.id(), "Generated conflict"));
                 added++;
@@ -161,15 +164,17 @@ public final class ScenarioGenerator {
 
     private List<Course> shareInstructors(Random random, List<Course> courses, int teacherCount) {
         List<String> teachers = instructors.subList(0, Math.min(teacherCount, instructors.size()));
-        Map<String, Set<String>> busySlots = new HashMap<>();
+        Map<String, List<Course>> teaching = new HashMap<>();
         List<Course> result = new ArrayList<>();
         for (Course course : courses) {
             String slot = planted.get(course.id());
             List<String> free = teachers.stream()
-                    .filter(t -> !busySlots.getOrDefault(t, Set.of()).contains(slot)).toList();
-            // A visiting instructor covers the course if every shared one is busy in this slot.
+                    .filter(t -> teaching.getOrDefault(t, List.of()).stream()
+                            .noneMatch(other -> grid.clash(course, slot, other, planted.get(other.id()))))
+                    .toList();
+            // A visiting instructor covers the course if every shared one is busy at an overlapping time.
             String teacher = free.isEmpty() ? "Visiting " + course.id() : free.get(random.nextInt(free.size()));
-            busySlots.computeIfAbsent(teacher, ignored -> new HashSet<>()).add(slot);
+            teaching.computeIfAbsent(teacher, ignored -> new ArrayList<>()).add(course);
             result.add(copy(course, teacher, course.historicalSlot(), course.allowedSlots()));
         }
         return result;

@@ -58,7 +58,8 @@ class OrToolsTimetableSolverTest {
         assertEquals(problem.courses().size(), solution.explanations().size());
         solution.explanations().values().forEach(explanation -> {
             assertFalseText(explanation.reasons().isEmpty());
-            assertEquals(problem.slots().size() - 1, explanation.alternatives().size());
+            assertEquals(problem.slots().stream().filter(slot -> !slot.isLab()).count() - 1,
+                    explanation.alternatives().size());
             assertTrue(explanation.asText().contains(explanation.assignedSlot()));
         });
     }

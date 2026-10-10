@@ -13,9 +13,9 @@ import in.ac.iitm.slotbook.explain.ExplanationBuilder;
 import in.ac.iitm.slotbook.model.Course;
 import in.ac.iitm.slotbook.model.CoursePair;
 import in.ac.iitm.slotbook.model.HardConflict;
-import in.ac.iitm.slotbook.model.InstructorPreference;
 import in.ac.iitm.slotbook.model.Slot;
 import in.ac.iitm.slotbook.model.SolveStatus;
+import in.ac.iitm.slotbook.model.TimeGrid;
 import in.ac.iitm.slotbook.model.TimetableProblem;
 import in.ac.iitm.slotbook.model.TimetableSolution;
 import in.ac.iitm.slotbook.model.ValidationIssue;
@@ -27,10 +27,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** CP-SAT formulation of IITM course-to-slot allocation. */
+/** CP-SAT formulation of IITM course-to-slot allocation (v1 solver, kept as the exact reference). */
 public final class OrToolsTimetableSolver implements TimetableSolver {
-    private static final int HISTORICAL_CHANGE_PENALTY = 2;
-    private static final int STUDENT_CONFLICT_MULTIPLIER = 3;
+    private static final int STUDENT_CONFLICT_MULTIPLIER = Objective.STUDENT_CONFLICT_MULTIPLIER;
 
     static {
         Loader.loadNativeLibraries();
@@ -54,12 +53,15 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
         Map<String, Map<String, BoolVar>> variables = createAssignmentVariables(problem, model);
         addExactlyOneSlotPerCourse(problem, model, variables);
         addFixedAssignments(problem, model, variables);
-        addHardConflicts(problem, model, variables);
-        addInstructorCollisionConstraints(problem, model, variables);
+        TimeGrid grid = problem.timeGrid();
+        addOwnLabExclusions(problem, grid, model, variables);
+        addHardConflicts(problem, grid, model, variables);
+        addInstructorCollisionConstraints(problem, grid, model, variables);
+        addRoomCollisionConstraints(problem, grid, model, variables);
 
         LinearExprBuilder objective = LinearExpr.newBuilder();
         addCourseSlotPenalties(problem, variables, objective);
-        addStudentConflictPenalties(problem, model, variables, objective);
+        addStudentConflictPenalties(problem, grid, model, variables, objective);
         model.minimize(objective);
 
         CpSolver solver = new CpSolver();
@@ -89,12 +91,10 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
             }
         }
 
-        ExplanationBuilder explanationBuilder = new ExplanationBuilder(
-                HISTORICAL_CHANGE_PENALTY, STUDENT_CONFLICT_MULTIPLIER);
         return new TimetableSolution(
                 status,
                 assignments,
-                explanationBuilder.buildAll(problem, assignments),
+                new ExplanationBuilder().buildAll(problem, assignments),
                 List.of(
                         "CP-SAT status: " + solverStatus,
                         "Branches explored: " + solver.numBranches(),
@@ -136,31 +136,73 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
         }
     }
 
-    private void addHardConflicts(
-            TimetableProblem problem, CpModel model, Map<String, Map<String, BoolVar>> variables) {
-        for (HardConflict conflict : problem.hardConflicts()) {
+    private void addOwnLabExclusions(
+            TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
+        for (Course course : problem.courses()) {
             for (Slot slot : problem.slots()) {
-                model.addAtMostOne(new BoolVar[] {
-                        variables.get(conflict.course1()).get(slot.id()),
-                        variables.get(conflict.course2()).get(slot.id())
-                });
+                if (grid.overlapsOwnLab(course, slot.id())) {
+                    model.addEquality(variables.get(course.id()).get(slot.id()), 0);
+                }
             }
         }
     }
 
+    private void addHardConflicts(
+            TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
+        Map<String, Course> courses = problem.coursesById();
+        for (HardConflict conflict : problem.hardConflicts()) {
+            forbidClashes(problem, grid, model, variables,
+                    courses.get(conflict.course1()), courses.get(conflict.course2()), false);
+        }
+    }
+
     private void addInstructorCollisionConstraints(
-            TimetableProblem problem, CpModel model, Map<String, Map<String, BoolVar>> variables) {
+            TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
         Map<String, List<Course>> byInstructor = new HashMap<>();
         for (Course course : problem.courses()) {
             byInstructor.computeIfAbsent(course.instructor(), ignored -> new ArrayList<>()).add(course);
         }
-        for (List<Course> courses : byInstructor.values()) {
-            if (courses.size() < 2) continue;
-            for (Slot slot : problem.slots()) {
-                List<BoolVar> instructorVariables = courses.stream()
-                        .map(course -> variables.get(course.id()).get(slot.id()))
-                        .toList();
-                model.addAtMostOne(instructorVariables.toArray(Literal[]::new));
+        forEachPair(byInstructor, (a, b) -> forbidClashes(problem, grid, model, variables, a, b, false));
+    }
+
+    private void addRoomCollisionConstraints(
+            TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables) {
+        Map<String, List<Course>> byRoom = new HashMap<>();
+        for (Course course : problem.courses()) {
+            if (course.hasRoom()) {
+                byRoom.computeIfAbsent(course.room().toUpperCase(), ignored -> new ArrayList<>()).add(course);
+            }
+        }
+        forEachPair(byRoom, (a, b) -> forbidClashes(problem, grid, model, variables, a, b, true));
+    }
+
+    private static void forEachPair(Map<String, List<Course>> groups, java.util.function.BiConsumer<Course, Course> action) {
+        for (List<Course> group : groups.values()) {
+            for (int i = 0; i < group.size(); i++) {
+                for (int j = i + 1; j < group.size(); j++) {
+                    action.accept(group.get(i), group.get(j));
+                }
+            }
+        }
+    }
+
+    /** Forbids every slot combination in which the two courses clash (lecture-only for rooms). */
+    private void forbidClashes(
+            TimetableProblem problem, TimeGrid grid, CpModel model, Map<String, Map<String, BoolVar>> variables,
+            Course a, Course b, boolean roomOnly) {
+        for (Slot slotA : problem.slots()) {
+            if (!a.allowedSlots().contains(slotA.id())) continue;
+            for (Slot slotB : problem.slots()) {
+                if (!b.allowedSlots().contains(slotB.id())) continue;
+                boolean clash = roomOnly
+                        ? grid.roomClash(a, slotA.id(), b, slotB.id())
+                        : grid.clash(a, slotA.id(), b, slotB.id());
+                if (clash) {
+                    model.addBoolOr(new Literal[] {
+                            variables.get(a.id()).get(slotA.id()).not(),
+                            variables.get(b.id()).get(slotB.id()).not()
+                    });
+                }
             }
         }
     }
@@ -169,16 +211,10 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
             TimetableProblem problem,
             Map<String, Map<String, BoolVar>> variables,
             LinearExprBuilder objective) {
-        Map<String, Integer> preferencePenalties = new HashMap<>();
-        for (InstructorPreference preference : problem.instructorPreferences()) {
-            preferencePenalties.put(preference.instructor() + "\u0000" + preference.slotId(), preference.penalty());
-        }
+        Objective penalties = new Objective(problem);
         for (Course course : problem.courses()) {
             for (Slot slot : problem.slots()) {
-                int penalty = preferencePenalties.getOrDefault(course.instructor() + "\u0000" + slot.id(), 1);
-                if (!course.historicalSlot().isBlank() && !course.historicalSlot().equals(slot.id())) {
-                    penalty += HISTORICAL_CHANGE_PENALTY;
-                }
+                int penalty = penalties.coursePenalty(course, slot.id());
                 if (penalty > 0) {
                     objective.addTerm(variables.get(course.id()).get(slot.id()), penalty);
                 }
@@ -188,25 +224,35 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
 
     private void addStudentConflictPenalties(
             TimetableProblem problem,
+            TimeGrid grid,
             CpModel model,
             Map<String, Map<String, BoolVar>> variables,
             LinearExprBuilder objective) {
+        Map<String, Course> courses = problem.coursesById();
         for (Map.Entry<CoursePair, Integer> entry : problem.studentPairWeights().entrySet()) {
             CoursePair pair = entry.getKey();
-            if (!variables.containsKey(pair.first()) || !variables.containsKey(pair.second())) continue;
-            for (Slot slot : problem.slots()) {
-                BoolVar first = variables.get(pair.first()).get(slot.id());
-                BoolVar second = variables.get(pair.second()).get(slot.id());
-                BoolVar sameSlot = model.newBoolVar(
-                        "student_clash_" + pair.first() + "_" + pair.second() + "_" + slot.id());
-                model.addLessOrEqual(sameSlot, first);
-                model.addLessOrEqual(sameSlot, second);
-                model.addLessOrEqual(
-                        LinearExpr.weightedSum(
-                                new LinearArgument[] {first, second, sameSlot},
-                                new long[] {1, 1, -1}),
-                        1);
-                objective.addTerm(sameSlot, (long) entry.getValue() * STUDENT_CONFLICT_MULTIPLIER);
+            Course a = courses.get(pair.first());
+            Course b = courses.get(pair.second());
+            if (a == null || b == null) continue;
+            for (Slot slotA : problem.slots()) {
+                if (!a.allowedSlots().contains(slotA.id())) continue;
+                for (Slot slotB : problem.slots()) {
+                    if (!b.allowedSlots().contains(slotB.id())) continue;
+                    int overlaps = grid.partOverlaps(a, slotA.id(), b, slotB.id());
+                    if (overlaps == 0) continue;
+                    BoolVar first = variables.get(a.id()).get(slotA.id());
+                    BoolVar second = variables.get(b.id()).get(slotB.id());
+                    BoolVar clash = model.newBoolVar(
+                            "student_clash_" + a.id() + "_" + slotA.id() + "_" + b.id() + "_" + slotB.id());
+                    model.addLessOrEqual(clash, first);
+                    model.addLessOrEqual(clash, second);
+                    model.addLessOrEqual(
+                            LinearExpr.weightedSum(
+                                    new LinearArgument[] {first, second, clash},
+                                    new long[] {1, 1, -1}),
+                            1);
+                    objective.addTerm(clash, (long) entry.getValue() * overlaps * STUDENT_CONFLICT_MULTIPLIER);
+                }
             }
         }
     }

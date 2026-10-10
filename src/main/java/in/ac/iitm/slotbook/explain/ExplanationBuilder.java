@@ -6,7 +6,9 @@ import in.ac.iitm.slotbook.model.CoursePair;
 import in.ac.iitm.slotbook.model.HardConflict;
 import in.ac.iitm.slotbook.model.InstructorPreference;
 import in.ac.iitm.slotbook.model.Slot;
+import in.ac.iitm.slotbook.model.TimeGrid;
 import in.ac.iitm.slotbook.model.TimetableProblem;
+import in.ac.iitm.slotbook.solver.Objective;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -14,66 +16,78 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Converts solver evidence into auditable natural-language reasons without an LLM. */
+/**
+ * Converts a solved assignment into auditable natural-language reasons without an LLM.
+ * It reads only the problem and the final assignment, so it explains the output of any solver.
+ */
 public final class ExplanationBuilder {
-    private final int historicalChangePenalty;
-    private final int studentConflictMultiplier;
-
-    public ExplanationBuilder(int historicalChangePenalty, int studentConflictMultiplier) {
-        this.historicalChangePenalty = historicalChangePenalty;
-        this.studentConflictMultiplier = studentConflictMultiplier;
-    }
 
     public Map<String, AssignmentExplanation> buildAll(
             TimetableProblem problem, Map<String, String> assignments) {
+        Context context = new Context(problem, assignments);
         Map<String, AssignmentExplanation> result = new LinkedHashMap<>();
         for (Course course : problem.courses()) {
-            result.put(course.id(), build(problem, course, assignments));
+            result.put(course.id(), build(context, course));
         }
         return result;
     }
 
-    private AssignmentExplanation build(
-            TimetableProblem problem, Course course, Map<String, String> assignments) {
-        String assignedSlot = assignments.get(course.id());
+    private record Context(
+            TimetableProblem problem,
+            Map<String, String> assignments,
+            TimeGrid grid,
+            Objective objective,
+            Map<String, Course> courses,
+            Map<CoursePair, Integer> pairWeights) {
+        Context(TimetableProblem problem, Map<String, String> assignments) {
+            this(problem, assignments, problem.timeGrid(), new Objective(problem),
+                    problem.coursesById(), problem.studentPairWeights());
+        }
+    }
+
+    private AssignmentExplanation build(Context context, Course course) {
+        String assignedSlot = context.assignments().get(course.id());
         List<String> reasons = new ArrayList<>();
         List<String> alternatives = new ArrayList<>();
 
         if (course.hasFixedSlot()) {
             reasons.add("Administrative input fixed this course to slot " + assignedSlot + ".");
         } else {
-            reasons.add("Slot " + assignedSlot + " satisfies every hard course and instructor constraint.");
+            reasons.add("Slot " + assignedSlot + " satisfies every hard course, instructor and room constraint.");
+        }
+        if (course.hasLab()) {
+            reasons.add("Its lab in slot " + course.additionalSlot()
+                    + " is fixed and does not overlap the lecture slot.");
         }
 
-        Optional<InstructorPreference> preference = preference(problem, course, assignedSlot);
+        Optional<InstructorPreference> preference = preference(context.problem(), course, assignedSlot);
         if (preference.isPresent()) {
             reasons.add("Instructor preference penalty is " + preference.get().penalty()
                     + ": " + preference.get().reason() + ".");
         } else {
-            reasons.add("No explicit instructor restriction applies; the default penalty is 1.");
+            reasons.add("No explicit instructor restriction applies; the default penalty is "
+                    + Objective.DEFAULT_INSTRUCTOR_PENALTY + ".");
         }
 
         if (assignedSlot.equals(course.historicalSlot())) {
             reasons.add("It preserves the historical slot and therefore adds no stability penalty.");
         } else if (!course.historicalSlot().isBlank()) {
             reasons.add("It moves from historical slot " + course.historicalSlot()
-                    + " and incurs stability penalty " + historicalChangePenalty + ".");
+                    + " and incurs stability penalty " + Objective.HISTORICAL_CHANGE_PENALTY + ".");
         }
 
-        int sameSlotDemand = studentConflictPenalty(problem, course.id(), assignedSlot, assignments);
         reasons.add("Its weighted student co-demand conflict contribution in this solution is "
-                + sameSlotDemand + ".");
+                + studentConflictPenalty(context, course, assignedSlot) + ".");
 
-        for (Slot slot : problem.slots()) {
-            if (slot.id().equals(assignedSlot)) continue;
-            alternatives.add(describeAlternative(problem, course, slot.id(), assignments));
+        for (Slot slot : context.problem().slots()) {
+            if (slot.isLab() || slot.id().equals(assignedSlot)) continue;
+            alternatives.add(describeAlternative(context, course, slot.id()));
         }
 
         return new AssignmentExplanation(course.id(), assignedSlot, reasons, alternatives);
     }
 
-    private String describeAlternative(
-            TimetableProblem problem, Course course, String slotId, Map<String, String> assignments) {
+    private String describeAlternative(Context context, Course course, String slotId) {
         if (!course.allowedSlots().contains(slotId)) {
             return slotId + ": rejected because it is outside the course's allowed-slot set.";
         }
@@ -81,58 +95,59 @@ public final class ExplanationBuilder {
             return slotId + ": rejected because the course is administratively fixed to "
                     + course.fixedSlot() + ".";
         }
+        if (context.grid().overlapsOwnLab(course, slotId)) {
+            return slotId + ": rejected because it overlaps the course's own lab " + course.additionalSlot() + ".";
+        }
 
-        for (HardConflict conflict : problem.hardConflicts()) {
+        for (HardConflict conflict : context.problem().hardConflicts()) {
             if (conflict.contains(course.id())) {
-                String other = conflict.other(course.id());
-                if (slotId.equals(assignments.get(other))) {
-                    return slotId + ": rejected because it would clash with " + other
+                Course other = context.courses().get(conflict.other(course.id()));
+                String otherSlot = context.assignments().get(other.id());
+                if (context.grid().clash(course, slotId, other, otherSlot)) {
+                    return slotId + ": rejected because it would clash with " + other.id()
                             + " (" + conflict.reason() + ").";
                 }
             }
         }
 
-        for (Course other : problem.courses()) {
-            if (!other.id().equals(course.id())
-                    && other.instructor().equals(course.instructor())
-                    && slotId.equals(assignments.get(other.id()))) {
+        for (Course other : context.problem().courses()) {
+            if (other.id().equals(course.id())) continue;
+            String otherSlot = context.assignments().get(other.id());
+            if (other.instructor().equals(course.instructor())
+                    && context.grid().clash(course, slotId, other, otherSlot)) {
                 return slotId + ": rejected because instructor " + course.instructor()
-                        + " is already assigned to " + other.id() + ".";
+                        + " already teaches " + other.id() + " at an overlapping time.";
+            }
+            if (context.grid().roomClash(course, slotId, other, otherSlot)) {
+                return slotId + ": rejected because room " + course.room()
+                        + " is already used by " + other.id() + " at an overlapping time.";
             }
         }
 
-        int basePenalty = preference(problem, course, slotId).map(InstructorPreference::penalty).orElse(1);
-        if (!course.historicalSlot().isBlank() && !course.historicalSlot().equals(slotId)) {
-            basePenalty += historicalChangePenalty;
-        }
-        int studentPenalty = studentConflictPenalty(problem, course.id(), slotId, assignments);
+        int basePenalty = context.objective().coursePenalty(course, slotId);
+        int studentPenalty = studentConflictPenalty(context, course, slotId);
         return slotId + ": feasible alternative; estimated local penalty = " + basePenalty
                 + " course/instructor + " + studentPenalty + " student-conflict.";
     }
 
-    private Optional<InstructorPreference> preference(
-            TimetableProblem problem, Course course, String slotId) {
+    private Optional<InstructorPreference> preference(TimetableProblem problem, Course course, String slotId) {
         return problem.instructorPreferences().stream()
                 .filter(item -> item.instructor().equals(course.instructor()) && item.slotId().equals(slotId))
                 .findFirst();
     }
 
-    private int studentConflictPenalty(
-            TimetableProblem problem,
-            String courseId,
-            String candidateSlot,
-            Map<String, String> assignments) {
+    private int studentConflictPenalty(Context context, Course course, String candidateSlot) {
         int result = 0;
-        for (Map.Entry<CoursePair, Integer> entry : problem.studentPairWeights().entrySet()) {
+        for (Map.Entry<CoursePair, Integer> entry : context.pairWeights().entrySet()) {
             CoursePair pair = entry.getKey();
-            String other = null;
-            if (pair.first().equals(courseId)) other = pair.second();
-            if (pair.second().equals(courseId)) other = pair.first();
-            if (other != null && candidateSlot.equals(assignments.get(other))) {
-                result += entry.getValue() * studentConflictMultiplier;
-            }
+            String otherId = null;
+            if (pair.first().equals(course.id())) otherId = pair.second();
+            if (pair.second().equals(course.id())) otherId = pair.first();
+            if (otherId == null) continue;
+            Course other = context.courses().get(otherId);
+            int overlaps = context.grid().partOverlaps(course, candidateSlot, other, context.assignments().get(otherId));
+            result += entry.getValue() * overlaps * Objective.STUDENT_CONFLICT_MULTIPLIER;
         }
         return result;
     }
 }
-

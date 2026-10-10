@@ -3,6 +3,7 @@ package in.ac.iitm.slotbook.testing;
 import in.ac.iitm.slotbook.model.Course;
 import in.ac.iitm.slotbook.model.CoursePair;
 import in.ac.iitm.slotbook.model.InstructorPreference;
+import in.ac.iitm.slotbook.model.TimeGrid;
 import in.ac.iitm.slotbook.model.TimetableProblem;
 
 import java.util.HashMap;
@@ -10,7 +11,8 @@ import java.util.Map;
 
 /**
  * Independent re-implementation of the documented objective, used as a test oracle.
- * It deliberately does not reuse solver code so that a modelling bug shows up as a mismatch.
+ * It deliberately does not reuse solver code so that a modelling bug shows up as a mismatch; it shares only
+ * the {@link TimeGrid} overlap rules, which {@code TestingFrameworkTest} checks against hand-computed cases.
  */
 public final class PenaltyCalculator {
     public static final int DEFAULT_INSTRUCTOR_PENALTY = 1;
@@ -50,12 +52,14 @@ public final class PenaltyCalculator {
         }
 
         long student = 0;
+        TimeGrid grid = problem.timeGrid();
+        Map<String, Course> courses = problem.coursesById();
         for (Map.Entry<CoursePair, Integer> entry : pairWeights.entrySet()) {
-            String first = assignments.get(entry.getKey().first());
-            String second = assignments.get(entry.getKey().second());
-            if (first != null && first.equals(second)) {
-                student += (long) entry.getValue() * STUDENT_CONFLICT_MULTIPLIER;
-            }
+            Course first = courses.get(entry.getKey().first());
+            Course second = courses.get(entry.getKey().second());
+            int overlaps = grid.partOverlaps(
+                    first, assignments.get(first.id()), second, assignments.get(second.id()));
+            student += (long) entry.getValue() * overlaps * STUDENT_CONFLICT_MULTIPLIER;
         }
         return new Breakdown(instructor, historical, student);
     }
