@@ -27,6 +27,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 
 /** Small JavaFX front end for import, solve, inspect, and export. */
 public final class SlotbookApplication extends Application {
@@ -80,7 +81,7 @@ public final class SlotbookApplication extends Application {
         instructor.setPrefWidth(140);
         TableColumn<CourseRow, String> slot = column("Assigned slot", CourseRow::assignedSlot);
         TableColumn<CourseRow, String> historical = column("Historical", CourseRow::historicalSlot);
-        table.getColumns().addAll(id, title, group, instructor, slot, historical);
+        table.getColumns().setAll(List.of(id, title, group, instructor, slot, historical));
         table.getSelectionModel().selectedItemProperty().addListener((ignored, oldValue, selected) -> {
             if (selected == null || currentRun == null) return;
             AssignmentExplanation details = currentRun.solution().explanations().get(selected.courseId());
