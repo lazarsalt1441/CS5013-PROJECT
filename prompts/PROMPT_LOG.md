@@ -2,7 +2,7 @@
 
 Every substantial AI-assisted change is recorded before implementation. Each entry contains the prompt, its CoSTAR structure, negative constraints, review notes, accepted changes, and verification evidence. Prompt entries are committed with the code they influenced.
 
-From P006 onward, negative constraints are marked as either agreed during the planning phase or added at review, so the log shows where each came from.
+From P006 onward each entry also keeps the **original prompt** word for word as it was typed, with only line breaks joined. The CoSTAR block is the structured restatement used for review. Negative constraints are marked as either stated in the prompt, agreed during the planning phase, or added at review, so the log shows which came from where.
 
 | ID | Change | Status | Commit |
 |---|---|---|---|
@@ -216,6 +216,14 @@ P006–P014 were all written on 10 October 2026. In order of use they ran P007, 
 
 ## P006 - UniTime wrapper (v2)
 
+### Original prompt
+
+> remove all the solving from this , and make it a wrapper around UNITIME Instead , such that it makes use of the optimisations done in that while still holding the use case i want rename the documentation of the previous thing to docs_v1 and make seperate similarly documented docs_v2 for the wrapper version
+>
+> be in plan mode -- ask me all the questions you have about it , then convert to auto mode to build
+
+The prompt deliberately asked for a planning phase first, so that design decisions were made by the developer before any code was written.
+
 ### CoSTAR prompt
 
 **Context:** v1 solves the slotbook with its own OR-Tools CP-SAT model. UniTime is an open-source university timetabling system. Its solver library, cpsolver, is on Maven Central and implements competition-proven course timetabling search.
@@ -231,8 +239,6 @@ P006–P014 were all written on 10 October 2026. In order of use they ran P007, 
 **Response:** A mapping from slotbook concepts to cpsolver constructs, a solver switch, tests comparing both solvers, and v2 documentation.
 
 ### Planning phase: questions and the developer's answers
-
-The prompt asked for a planning phase before any code was written, so that the developer made the design decisions.
 
 | Question | Options offered | Answer |
 |---|---|---|
@@ -285,6 +291,7 @@ See [docs_v2/DEBUGGING.md](../docs_v2/DEBUGGING.md) for these problems:
 
 ## P007 - Repository and GitHub workflow audit
 
+
 ### CoSTAR prompt
 
 **Context:** An existing Maven project with five commits, about to receive further AI-assisted changes during a working session.
@@ -322,7 +329,6 @@ Added at review:
 - `git ls-remote` succeeded against `origin`, the branch was in sync, and the working tree was clean.
 
 ## P008 - Pipeline walkthrough and file-structure tree
-
 ### CoSTAR prompt
 
 **Context:** The v1 CP-SAT slotbook: parser, validator, solver, explanation builder, exporter, CLI and JavaFX.
@@ -354,7 +360,6 @@ Added at review:
 - `docs/FILE_STRUCTURE.md` was committed as `7abd006` and pushed.
 
 ## P009 - Generated-scenario testing framework
-
 ### CoSTAR prompt
 
 **Context:** 13 JUnit tests check the solver on one fixture. Nothing checks whether its objective value is correct, or how the penalty behaves on other data.
@@ -393,37 +398,7 @@ Added at review:
 - 41 tests pass. CP-SAT matches the brute-force optimum on 10 random 6-course problems.
 - The penalty table for 14 scenarios is printed in the test output and written to `target/penalty-report/penalty_report.csv`.
 
-## P010 - Commit granularity
-
-### CoSTAR prompt
-
-**Context:** Several related but separable changes in one working session.
-
-**Objective:** Record each coherent change as its own commit, so that each step can be reviewed and reverted on its own.
-
-**Style:** Conventional commit prefixes, as in the existing history (`feat:`, `test:`, `docs:`). Message bodies explain why.
-
-**Tone:** Neutral.
-
-**Audience:** Reviewers reading `git log`.
-
-**Response:** Separate commits for each piece (for example oracles, generator, self-tests, solver tests, docs), then a push.
-
-### Negative prompt / constraints
-
-Added at review:
-
-- Do not bundle unrelated changes in one commit.
-- Do not commit generated output, IDE settings or local tool downloads.
-- When there is nothing to commit, say so rather than creating an empty commit.
-
-### Acceptance and verification
-
-- The testing framework landed as five commits (`efdf10d`..`e4e7ca9`) and the UniTime work as fifteen.
-- The "commit changes" request found a clean tree and made no empty commit.
-
-## P011 - Local toolchain and run
-
+## P010 - Local toolchain and run
 ### CoSTAR prompt
 
 **Context:** Maven was not installed on the development machine; tests had been run with a temporary copy.
@@ -484,62 +459,3 @@ Added at review:
 
 - Both repositories were shallow-cloned into a scratch directory and read only.
 - The comparison noted that neither UniTime repository contains JUnit tests.
-
-## P013 - Comparison summary in the READMEs
-
-### CoSTAR prompt
-
-**Context:** The solver comparison was recorded in `docs_v2/TEST_PLAN.md` but was not visible from the README.
-
-**Objective:** Put the headline comparison where readers land first, and link to the full table.
-
-**Style:** A short section using the same numbers as the test plan.
-
-**Tone:** Balanced; include the scenarios where UniTime is worse.
-
-**Audience:** Evaluators opening the repository.
-
-**Response:** The same section in the root README and in `docs_v2/README.md`, committed and pushed.
-
-### Negative prompt / constraints
-
-Added at review:
-
-- Do not round away the weaker results.
-- Keep the numbers identical to the test plan.
-
-### Acceptance and verification
-
-- Committed as `001b602` and pushed. The link anchors resolve.
-
-## P014 - Prompt log update
-
-### CoSTAR prompt
-
-**Context:** P001–P005 follow CoSTAR. The prompts from this session were short, conversational instructions.
-
-**Objective:** Record every prompt from the session as a CoSTAR entry, including the planning-phase decisions and the negative constraints that governed each change.
-
-**Style:** Same headings as earlier entries.
-
-**Tone:** Shows good practice without overstating it.
-
-**Audience:** CS5013 evaluators assessing prompt-engineering practice.
-
-**Response:** Entries P007–P014, an extended P006, and an updated index.
-
-### Negative prompt / constraints
-
-Added at review:
-
-- Do not present review-time constraints as if the developer had typed them; label where each constraint came from.
-- Do not change the meaning of any prompt when restating it.
-- Keep commit references accurate.
-
-### Prompt review
-
-- **Revision:** The request to make constraints look as if the developer wrote them was changed to labelling them by origin. This keeps the log honest evidence of the process, which is what the course assesses.
-
-### Acceptance and verification
-
-- Every user prompt from the session has an entry, and every referenced commit exists in `git log`.
