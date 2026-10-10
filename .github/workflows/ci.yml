@@ -26,10 +26,15 @@ jobs:
       - name: Compile and run tests
         run: mvn --batch-mode --no-transfer-progress clean test
 
-      - name: Run feasible CLI demonstration
+      - name: Run feasible CLI demonstration (UniTime)
         run: >-
           mvn --batch-mode --no-transfer-progress exec:java
-          -Dexec.args="--input data/feasible --output output/ci-demo"
+          -Dexec.args="--input data/feasible --output output/ci-demo --time-limit 3"
+
+      - name: Run feasible CLI demonstration (CP-SAT)
+        run: >-
+          mvn --batch-mode --no-transfer-progress exec:java
+          -Dexec.args="--input data/feasible --output output/ci-demo-cpsat --solver cpsat"
 
       - name: Upload test reports
         if: always()
