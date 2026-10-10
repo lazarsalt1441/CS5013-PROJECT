@@ -9,6 +9,7 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 | P003 | Implement parsing, validation, CP-SAT optimization, and explanations | Accepted | `11eb6ad` |
 | P004 | Test feasible, infeasible, parsing, explanation, and export behavior | Accepted | `11eb6ad` |
 | P005 | Produce evaluator-facing manuals and practices document | Accepted | current documentation commit |
+| P006 | Replace the default solver with a UniTime (cpsolver) wrapper; real IITM times, rooms and labs; docs_v1 / docs_v2 | Accepted | `cfbe4f5`..`4cdf358` and the docs_v2 commit |
 
 ## P001 - Project architecture and workflow
 
@@ -201,3 +202,57 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 - Commands, options, input schemas, outputs, exit statuses, mathematical constraints, and safe live-edit locations documented.
 - Test counts match the executed JUnit report.
 
+## P006 - UniTime wrapper (v2)
+
+### CoSTAR prompt
+
+**Context:** v1 solves the slotbook with its own OR-Tools CP-SAT model. UniTime is an open-source university timetabling system. Its solver library, cpsolver, is on Maven Central and implements competition-proven course timetabling search.
+
+**Objective:** Remove the solving from this project and make it a wrapper around UniTime, so that it uses UniTime's optimisation while keeping the use case: CSV inputs, IITM slot letters, explanations, CLI, JavaFX and exports. Move the previous documentation to `docs_v1` and write a matching `docs_v2`.
+
+**Style:** Same layering as v1. All UniTime-specific code lives in one package. The rules for overlap and cost each have one definition, shared by every component.
+
+**Tone:** Honest about heuristics: no optimality claims for UniTime.
+
+**Audience:** Evaluators comparing v1 and v2, and students making live changes.
+
+**Response:** A mapping from slotbook concepts to cpsolver constructs, a solver switch, tests comparing both solvers, and v2 documentation.
+
+### Decisions taken with the user before building
+
+- Embed cpsolver as a library, with no UniTime server or database.
+- Keep CP-SAT as a selectable reference solver. UniTime is the default.
+- Model real times and rooms. Take slot and lab times from the official IITM grid, not guesses.
+- Tests check feasibility and the penalty, and report the gap to the optimum without asserting it.
+- `docs_v1` holds `docs/` plus the v1 README and MANUAL.
+
+### Negative prompt / constraints
+
+- Do not change what the objective means. UniTime's score must equal the documented penalty.
+- Do not assert that a heuristic is optimal.
+- Do not invent slot times. Parse <https://www.iitm.ac.in/timetable> and cite it.
+- Do not mix the B.Tech and M.Tech grids; document the difference.
+- Do not let the explanations depend on solver internals.
+
+### Prompt review
+
+- **Correctness risk:** A UniTime `TimeLocation` has one start time for all days, but IITM slots don't. Resolved by encoding the real meetings in the week bitset, which UniTime's overlap test already checks.
+- **Equivalence risk:** UniTime's student criterion counts students. Resolved with one synthetic student per unit of pair weight. Its time preference is relative to each class's best time; resolved by adding the per-class minimum back.
+- **Scope change:** Rooms and labs became hard rules in both solvers. This removed a real room clash in the v1 output and raised the baseline from 17 to 20.
+- **Revision:** UniTime's stock moves and hill-climber limit were added after the search stalled. Deluge was chosen over UniTime's Default IFS after benchmarking both.
+
+### Acceptance and verification
+
+- 52 JUnit tests pass, with identical reports across separate JVM runs.
+- On `data/feasible`, UniTime and CP-SAT both give 20, the proven optimum, and EE1100 and EE1101 no longer share CRC.
+- On every generated scenario, both solvers are feasible, report exactly the recomputed penalty and beat the planted timetable.
+- The infeasible fixture is rejected with `FIXED_CONFLICT` by both solvers.
+
+### Debugging record
+
+See [docs_v2/DEBUGGING.md](../docs_v2/DEBUGGING.md) for these problems:
+
+- a cpsolver crash when only two criteria were registered;
+- the relative time-preference offset;
+- test results changing between runs because of per-JVM map ordering;
+- the search stalling without UniTime's stock moves.
