@@ -55,6 +55,7 @@ public final class DatasetLoader {
                         CsvSupport.required(row, "slot_id", path),
                         CsvSupport.required(row, "days", path),
                         CsvSupport.required(row, "start_times", path),
+                        row.getOrDefault("lengths", ""),
                         CsvSupport.required(row, "category", path));
             } catch (IOException error) {
                 throw new RowParseException(error);

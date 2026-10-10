@@ -27,8 +27,8 @@ public final class ScenarioCsvWriter {
         }
         write(directory.resolve("courses.csv"), courses);
 
-        List<String> slots = new ArrayList<>(List.of("slot_id,days,start_times,category"));
-        problem.slots().forEach(s -> slots.add(row(s.id(), s.days(), s.startTimes(), s.category())));
+        List<String> slots = new ArrayList<>(List.of("slot_id,days,start_times,lengths,category"));
+        problem.slots().forEach(s -> slots.add(row(s.id(), s.days(), s.startTimes(), s.lengths(), s.category())));
         write(directory.resolve("slots.csv"), slots);
 
         List<String> conflicts = new ArrayList<>(List.of("course_1,course_2,reason"));
