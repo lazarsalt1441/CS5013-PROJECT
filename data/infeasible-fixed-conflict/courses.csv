@@ -1,0 +1,4 @@
+course_id,title,semester_group,course_type,instructor,class_size,historical_slot,fixed_slot,allowed_slots,additional_slot,room
+EE9001,Mock Core One,BT02_EE,CORE,Instructor One,100,A,A,A|B,,ROOM 1
+EE9002,Mock Core Two,BT02_EE,CORE,Instructor Two,100,A,A,A|B,,ROOM 2
+

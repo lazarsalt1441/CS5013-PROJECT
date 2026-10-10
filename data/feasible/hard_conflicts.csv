@@ -1,0 +1,13 @@
+course_1,course_2,reason
+EE1101,EE2002,BT02 EE students take both courses
+EE3001,EE2004,BT04 EE core courses cannot clash
+EE3001,EE2019,BT04 EE core courses cannot clash
+EE2004,EE2019,BT04 EE core courses cannot clash
+EE3005,EE4502,BT06 electives requested as a protected pair
+EE5141,EE3110,MT02 EE1 breadth requirement
+EE5141,EE5112,MT02 EE1 breadth requirement
+EE3110,EE5143,MT02 EE1 breadth requirement
+EE5175,EE6180,High historical co-enrolment
+EE5150,EE5178,High historical co-enrolment
+EE5320,EE6332,MT02 EE6 core-elective pairing
+
