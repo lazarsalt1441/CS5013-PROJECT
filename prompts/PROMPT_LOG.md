@@ -4,10 +4,11 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 
 | ID | Change | Status | Commit |
 |---|---|---|---|
-| P001 | Establish project architecture and engineering workflow | Accepted | pending |
-| P002 | Create auditable mock slotbook and student-preference fixtures | Accepted | pending |
-| P003 | Implement parsing, validation, CP-SAT optimization, and explanations | Accepted | pending |
-| P004 | Test feasible, infeasible, parsing, explanation, and export behavior | Accepted | pending |
+| P001 | Establish project architecture and engineering workflow | Accepted | `c6728e6` |
+| P002 | Create auditable mock slotbook and student-preference fixtures | Accepted | `70f4ba6` |
+| P003 | Implement parsing, validation, CP-SAT optimization, and explanations | Accepted | `11eb6ad` |
+| P004 | Test feasible, infeasible, parsing, explanation, and export behavior | Accepted | `11eb6ad` |
+| P005 | Produce evaluator-facing manuals and practices document | Accepted | current documentation commit |
 
 ## P001 - Project architecture and workflow
 
@@ -169,6 +170,34 @@ Every substantial AI-assisted change is recorded before implementation. Each ent
 - **Fix:** Assert the exported semantic marker `rejected because` instead of an unrelated presentation heading.
 - **Regression protection:** Re-run the complete test suite, not only the previously failing test.
 
+## P005 - Evaluator documentation
 
+### CoSTAR prompt
 
+**Context:** The mid-evaluation requires a three-page engineering-practices PDF, architecture soft copy, two-minute system explanation, and code comprehension during a live modification.
+
+**Objective:** Document how the tool works, how to run it, how each module owns behaviour, what was tested, and how AI-assisted work was reviewed.
+
+**Style:** Concise evaluator-facing prose, exact command examples, diagrams for data flow, and explicit limitations.
+
+**Tone:** Evidence-based and non-defensive.
+
+**Audience:** CS5013 TAs evaluating engineering practice and individual understanding.
+
+**Response:** Create a man-page-style manual, about page, code walkthrough, test plan, debugging guide, architecture SVG, two-minute script, source markdown, and a visually verified three-page PDF.
+
+### Negative prompt / constraints
+
+- Do not exceed three PDF pages.
+- Do not hide limitations or synthetic-data provenance.
+- Do not include test claims that were not executed.
+- Do not describe an LLM as part of the mathematical decision path.
+- Do not write documentation that merely repeats class names without explaining data flow.
+
+### Prompt review and verification
+
+- PDF page count checked with `pdfinfo`: exactly three A4 pages.
+- All three pages rendered to PNG and visually inspected for clipping and overlap.
+- Commands, options, input schemas, outputs, exit statuses, mathematical constraints, and safe live-edit locations documented.
+- Test counts match the executed JUnit report.
 

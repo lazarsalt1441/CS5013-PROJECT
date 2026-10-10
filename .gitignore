@@ -2,7 +2,7 @@ target/
 .idea/
 *.iml
 .DS_Store
-output/*.csv
-output/*.json
+output/**
 !output/.gitkeep
+tmp/
 

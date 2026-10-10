@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs>
+    <style>
+      .box { fill:#f8f5ef; stroke:#2f3e46; stroke-width:2; rx:14; }
+      .accent { fill:#e9c46a; stroke:#8a6422; stroke-width:2; rx:14; }
+      .ok { fill:#b7d7c0; stroke:#356859; stroke-width:2; rx:14; }
+      .bad { fill:#f2c6c2; stroke:#9f3a38; stroke-width:2; rx:14; }
+      .title { font:700 27px sans-serif; fill:#1f2933; }
+      .label { font:600 18px sans-serif; fill:#1f2933; text-anchor:middle; }
+      .small { font:14px sans-serif; fill:#37474f; text-anchor:middle; }
+      .arrow { stroke:#455a64; stroke-width:3; fill:none; marker-end:url(#head); }
+    </style>
+    <marker id="head" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#455a64"/>
+    </marker>
+  </defs>
+  <text x="600" y="45" class="title" text-anchor="middle">IITM Explainable Slotbook - System Flow</text>
+  <rect x="40" y="105" width="180" height="90" class="box"/>
+  <text x="130" y="140" class="label">CSV datasets</text>
+  <text x="130" y="166" class="small">courses, slots, preferences</text>
+  <rect x="285" y="105" width="170" height="90" class="box"/>
+  <text x="370" y="140" class="label">Parser</text>
+  <text x="370" y="166" class="small">immutable domain model</text>
+  <rect x="520" y="105" width="170" height="90" class="accent"/>
+  <text x="605" y="140" class="label">Validator</text>
+  <text x="605" y="166" class="small">references and contradictions</text>
+  <rect x="755" y="105" width="190" height="90" class="accent"/>
+  <text x="850" y="140" class="label">CP-SAT solver</text>
+  <text x="850" y="166" class="small">hard rules + soft objective</text>
+  <rect x="990" y="105" width="170" height="90" class="ok"/>
+  <text x="1075" y="140" class="label">Solution</text>
+  <text x="1075" y="166" class="small">assignments + evidence</text>
+  <path d="M220 150 H285" class="arrow"/><path d="M455 150 H520" class="arrow"/>
+  <path d="M690 150 H755" class="arrow"/><path d="M945 150 H990" class="arrow"/>
+  <rect x="520" y="270" width="170" height="80" class="bad"/>
+  <text x="605" y="303" class="label">Validation report</text>
+  <text x="605" y="329" class="small">actionable input errors</text>
+  <path d="M605 195 V270" class="arrow"/>
+  <rect x="765" y="395" width="170" height="80" class="box"/>
+  <text x="850" y="428" class="label">Explanations</text>
+  <text x="850" y="454" class="small">reasons + alternatives</text>
+  <rect x="990" y="270" width="170" height="80" class="box"/>
+  <text x="1075" y="303" class="label">JavaFX UI</text>
+  <text x="1075" y="329" class="small">inspect each course</text>
+  <rect x="990" y="395" width="170" height="80" class="box"/>
+  <text x="1075" y="428" class="label">CSV exports</text>
+  <text x="1075" y="454" class="small">slotbook + audit trail</text>
+  <path d="M1075 195 V270" class="arrow"/>
+  <path d="M1025 195 C1025 235 850 255 850 395" class="arrow"/>
+  <path d="M935 435 H990" class="arrow"/>
+</svg>
