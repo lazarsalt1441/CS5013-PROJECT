@@ -1,4 +1,4 @@
-# IITM Explainable Slotbook (v2: UniTime wrapper)
+# IITM Slotbook (v2: UniTime wrapper)
 
 A Java application that assigns IITM Electrical Engineering courses to institutional slots and produces evidence-backed explanations for every assignment. Version 2 hands the optimisation to [UniTime](https://www.unitime.org)'s course timetabling engine, [cpsolver](https://github.com/UniTime/cpsolver), and keeps the v1 CP-SAT model as an exact reference solver.
 
