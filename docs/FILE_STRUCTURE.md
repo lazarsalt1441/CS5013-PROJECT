@@ -42,6 +42,13 @@ CS5013-PROJECT/
 │   └── explain/ExplanationBuilder.java  Deterministic reasons + rejected alternatives
 │
 ├── src/test/java/in/ac/iitm/slotbook/   JUnit tests mirroring io/, solver/, validation/
+│   ├── solver/GeneratedScenarioTest.java     Solves generated scenarios, prints penalty report
+│   ├── solver/BruteForceOptimalityTest.java  CP-SAT vs exhaustive optimum on small problems
+│   └── testing/                    Test framework (see docs/TEST_PLAN.md)
+│       ├── ScenarioGenerator, Scenario     Seeded dummy datasets derived from data/feasible
+│       ├── PenaltyCalculator, ConstraintChecker, BruteForceSolver   Independent oracles
+│       ├── ScenarioCsvWriter, PenaltyReport                         Dataset + report output
+│       └── TestingFrameworkTest            Self-tests for the oracles
 │
 ├── docs/                           Architecture, walkthrough, test plan, debugging,
 │                                   verification, evaluation script, diagrams, PDF
