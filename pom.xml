@@ -14,6 +14,7 @@
         <junit.version>5.11.3</junit.version>
         <javafx.version>21.0.5</javafx.version>
         <ortools.version>9.11.4210</ortools.version>
+        <cpsolver.version>1.4.94</cpsolver.version>
     </properties>
 
     <dependencies>
@@ -21,6 +22,12 @@
             <groupId>com.google.ortools</groupId>
             <artifactId>ortools-java</artifactId>
             <version>${ortools.version}</version>
+        </dependency>
+        <!-- UniTime's timetabling solver engine (LGPL-3.0), used by the default v2 solver. -->
+        <dependency>
+            <groupId>org.unitime</groupId>
+            <artifactId>cpsolver</artifactId>
+            <version>${cpsolver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
