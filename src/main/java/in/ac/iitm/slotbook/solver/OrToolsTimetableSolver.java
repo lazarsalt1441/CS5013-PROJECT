@@ -31,8 +31,21 @@ import java.util.Map;
 public final class OrToolsTimetableSolver implements TimetableSolver {
     private static final int STUDENT_CONFLICT_MULTIPLIER = Objective.STUDENT_CONFLICT_MULTIPLIER;
 
+    public static final double DEFAULT_TIME_LIMIT_SECONDS = 10.0;
+
     static {
         Loader.loadNativeLibraries();
+    }
+
+    private final double timeLimitSeconds;
+
+    public OrToolsTimetableSolver() {
+        this(DEFAULT_TIME_LIMIT_SECONDS);
+    }
+
+    public OrToolsTimetableSolver(double timeLimitSeconds) {
+        if (timeLimitSeconds <= 0) throw new IllegalArgumentException("Time limit must be positive");
+        this.timeLimitSeconds = timeLimitSeconds;
     }
 
     @Override
@@ -65,7 +78,7 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
         model.minimize(objective);
 
         CpSolver solver = new CpSolver();
-        solver.getParameters().setMaxTimeInSeconds(10.0);
+        solver.getParameters().setMaxTimeInSeconds(timeLimitSeconds);
         solver.getParameters().setNumSearchWorkers(1);
         solver.getParameters().setRandomSeed(5013);
         CpSolverStatus solverStatus = solver.solve(model);

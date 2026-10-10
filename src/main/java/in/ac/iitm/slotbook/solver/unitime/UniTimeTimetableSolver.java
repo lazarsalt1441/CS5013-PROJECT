@@ -9,6 +9,8 @@ import in.ac.iitm.slotbook.model.ValidationIssue;
 import in.ac.iitm.slotbook.solver.Objective;
 import in.ac.iitm.slotbook.solver.TimetableSolver;
 import in.ac.iitm.slotbook.validation.InputValidator;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.cpsolver.coursett.criteria.StudentOverlapConflict;
 import org.cpsolver.coursett.criteria.TimePreferences;
 import org.cpsolver.coursett.model.Lecture;
@@ -42,6 +44,11 @@ public final class UniTimeTimetableSolver implements TimetableSolver {
             "StudentWorkdayConflict", "UselessHalfHours", "BrokenTimePatterns", "TooBigRooms", "RoomPreferences",
             "DistributionPreferences", "SameSubpartBalancingPenalty", "DepartmentBalancingPenalty",
             "BackToBackInstructorPreferences", "Perturbations", "FlexibleConstraintCriterion");
+
+    static {
+        // cpsolver logs every search phase at INFO; keep the CLI output to the slotbook report.
+        Configurator.setLevel("org.cpsolver", Level.WARN);
+    }
 
     private final double timeLimitSeconds;
     private final long maxIterations;

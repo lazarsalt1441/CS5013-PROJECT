@@ -5,6 +5,7 @@ import in.ac.iitm.slotbook.model.AssignmentExplanation;
 import in.ac.iitm.slotbook.model.Course;
 import in.ac.iitm.slotbook.service.SlotbookRun;
 import in.ac.iitm.slotbook.service.SlotbookService;
+import in.ac.iitm.slotbook.solver.SolverChoice;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -12,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
@@ -31,7 +33,8 @@ import java.util.List;
 
 /** Small JavaFX front end for import, solve, inspect, and export. */
 public final class SlotbookApplication extends Application {
-    private final SlotbookService service = new SlotbookService();
+    private final ComboBox<SolverChoice> solverChoice =
+            new ComboBox<>(FXCollections.observableArrayList(SolverChoice.values()));
     private final SlotbookExporter exporter = new SlotbookExporter();
     private final TableView<CourseRow> table = new TableView<>();
     private final TextArea explanation = new TextArea();
@@ -55,7 +58,9 @@ public final class SlotbookApplication extends Application {
         Button export = new Button("Export CSV");
         export.setOnAction(event -> export(stage));
 
-        HBox inputBar = new HBox(8, new Label("Dataset:"), datasetPath, browse, solve, export);
+        solverChoice.getSelectionModel().select(SolverChoice.UNITIME);
+        HBox inputBar = new HBox(8, new Label("Dataset:"), datasetPath, browse,
+                new Label("Solver:"), solverChoice, solve, export);
         HBox.setHgrow(datasetPath, Priority.ALWAYS);
         inputBar.setPadding(new Insets(12));
 
@@ -105,6 +110,8 @@ public final class SlotbookApplication extends Application {
 
     private void solve() {
         try {
+            SlotbookService service = new SlotbookService(
+                    solverChoice.getValue(), SlotbookService.DEFAULT_TIME_LIMIT_SECONDS);
             currentRun = service.run(Path.of(datasetPath.getText()));
             if (!currentRun.solution().hasSolution()) {
                 table.setItems(FXCollections.observableArrayList());
@@ -117,7 +124,7 @@ public final class SlotbookApplication extends Application {
                             course.id(), course.title(), course.semesterGroup(), course.instructor(),
                             currentRun.solution().assignments().get(course.id()), course.historicalSlot()))
                     .toList()));
-            status.setText("Status: " + currentRun.solution().status()
+            status.setText(solverChoice.getValue() + " | status: " + currentRun.solution().status()
                     + " | objective: " + currentRun.solution().objectiveValue()
                     + " | runtime: " + String.format("%.3f s", currentRun.solution().runtimeSeconds()));
             if (!table.getItems().isEmpty()) table.getSelectionModel().selectFirst();
