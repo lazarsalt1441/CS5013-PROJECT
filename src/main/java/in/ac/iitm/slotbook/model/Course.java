@@ -23,5 +23,14 @@ public record Course(
     public boolean hasFixedSlot() {
         return fixedSlot != null && !fixedSlot.isBlank();
     }
+
+    /** True when the course has a fixed lab meeting in {@code additionalSlot}. */
+    public boolean hasLab() {
+        return additionalSlot != null && !additionalSlot.isBlank();
+    }
+
+    public boolean hasRoom() {
+        return room != null && !room.isBlank();
+    }
 }
 

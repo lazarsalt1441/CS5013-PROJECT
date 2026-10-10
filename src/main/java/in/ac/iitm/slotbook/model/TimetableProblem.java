@@ -34,6 +34,10 @@ public record TimetableProblem(
         return result;
     }
 
+    public TimeGrid timeGrid() {
+        return new TimeGrid(slots);
+    }
+
     /** Number of synthetic/anonymized students requesting each pair of courses. */
     public Map<CoursePair, Integer> studentPairWeights() {
         Map<String, List<StudentSelection>> byStudent = new HashMap<>();
