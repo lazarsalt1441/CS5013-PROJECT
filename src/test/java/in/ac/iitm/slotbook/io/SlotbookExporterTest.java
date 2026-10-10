@@ -2,6 +2,7 @@ package in.ac.iitm.slotbook.io;
 
 import in.ac.iitm.slotbook.service.SlotbookRun;
 import in.ac.iitm.slotbook.service.SlotbookService;
+import in.ac.iitm.slotbook.solver.SolverChoice;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SlotbookExporterTest {
     @Test
     void exportsAssignmentsAndExplanations(@TempDir Path output) throws Exception {
-        SlotbookRun run = new SlotbookService().run(Path.of("data/feasible"));
+        SlotbookRun run = new SlotbookService(SolverChoice.UNITIME, 1.0).run(Path.of("data/feasible"));
         new SlotbookExporter().export(run, output);
         Path assignments = output.resolve("generated_slotbook.csv");
         Path explanations = output.resolve("assignment_explanations.csv");
