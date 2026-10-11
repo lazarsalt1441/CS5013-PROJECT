@@ -7,7 +7,7 @@ This synthetic scenario is small enough to explain in two minutes but rich enoug
 - Two large core courses are administratively fixed to slots B and C.
 - One core course has a fixed Friday laboratory and must avoid lecture choices that overlap it.
 - Eight popular electives compete for seven standard lecture slots, so the model must decide which low-weight student conflict is least harmful.
-- Thirty anonymous students form four recognisable preference clusters: AI/vision, communications, theory, and cross-domain electives.
+- Thirty-six anonymous students form four recognisable demand clusters plus six pair-coverage profiles. Together they create co-demand between every pair of the eight electives.
 - Faculty preferences deliberately disagree with some historical slots and student-demand patterns.
 - Protected curriculum pairs, shared rooms, fixed courses, and the laboratory remain hard constraints.
 

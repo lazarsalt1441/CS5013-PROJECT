@@ -542,7 +542,7 @@ Added at review:
 ### Prompt review
 
 - **Scenario shape:** Eleven courses include two fixed core courses, one fixed laboratory and eight electives competing for seven lecture slots.
-- **Demand model:** Thirty anonymous students form AI/vision, communications, theory and cross-domain preference clusters, producing 120 ranked rows.
+- **Demand model:** Thirty-six anonymous students produce 144 ranked rows. Six pair-coverage profiles supplement the four main demand clusters so every pair among the eight electives has positive co-demand.
 - **Traceability:** Six protected pairs and twenty instructor preference rows create alternatives that explanations can classify as impossible or more costly.
 - **Presentation:** The workbook puts the scenario metrics and a five-step evaluator walkthrough before the underlying source tabs.
 

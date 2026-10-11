@@ -92,13 +92,27 @@ for (const preference of students) {
   requireCondition(courseIds.has(preference.course_id), `${preference.student_id}: unknown course ${preference.course_id}`);
   byStudent.set(preference.student_id, [...(byStudent.get(preference.student_id) || []), preference]);
 }
-requireCondition(byStudent.size === 30, `expected 30 anonymous students, found ${byStudent.size}`);
-requireCondition(students.length === 120, `expected 120 preference rows, found ${students.length}`);
+requireCondition(byStudent.size === 36, `expected 36 anonymous students, found ${byStudent.size}`);
+requireCondition(students.length === 144, `expected 144 preference rows, found ${students.length}`);
 for (const [studentId, preferences] of byStudent) {
   const ranks = preferences.map(row => Number(row.rank)).sort((a, b) => a - b);
   const selectedCourses = new Set(preferences.map(row => row.course_id));
   requireCondition(JSON.stringify(ranks) === JSON.stringify([1, 2, 3, 4]), `${studentId}: ranks must be exactly 1-4`);
   requireCondition(selectedCourses.size === 4, `${studentId}: courses must be unique`);
 }
+
+const electives = courses.filter(row => row.course_type === "ELECTIVE").map(row => row.course_id).sort();
+const coveredPairs = new Set();
+for (const preferences of byStudent.values()) {
+  const selected = preferences.map(row => row.course_id).filter(id => electives.includes(id)).sort();
+  for (let first = 0; first < selected.length; first += 1) {
+    for (let second = first + 1; second < selected.length; second += 1) {
+      coveredPairs.add(`${selected[first]}\u0000${selected[second]}`);
+    }
+  }
+}
+const expectedPairs = electives.length * (electives.length - 1) / 2;
+requireCondition(coveredPairs.size === expectedPairs,
+  `expected complete elective co-demand coverage (${expectedPairs} pairs), found ${coveredPairs.size}`);
 
 console.log(`Demo fixture valid: ${courses.length} courses, ${byStudent.size} students, ${students.length} preferences, ${conflicts.length} protected pairs.`);
