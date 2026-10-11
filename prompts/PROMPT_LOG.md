@@ -550,4 +550,8 @@ Added at review:
 
 - The workbook contains the same five solver inputs as the CSV fixture and contains no formula errors.
 - GitHub Actions runs the normal tests, then generates UniTime and CP-SAT outputs for the showcase and uploads both as an artifact.
-- Final objective comparison and live-publication checks are recorded after CI completes.
+- The first draft produced zero student conflicts, so it was rejected as a weak demonstration. Six synthetic pair-coverage profiles were added, and the validator now proves that all 28 elective pairs have positive co-demand.
+- CI run 13 passed every portal and Java step. UniTime returned objective 9 in 10.108 seconds; CP-SAT proved objective 9 optimal in 0.199 seconds.
+- Both outputs place EE3110 and EE5175 together in slot B, leaving the minimum-weight unavoidable elective conflict. Their explanations each report student-conflict contribution 3.
+- The four solver-generated CSVs are checked in under `data/demo-showcase/generated`; they are not hand-authored.
+- The UniTime result is published to the live portal after the final upload verification.

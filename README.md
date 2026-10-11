@@ -64,6 +64,14 @@ mvn exec:java -Dexec.args="--input data/feasible --output output/demo --solver c
 mvn javafx:run
 ```
 
+For the mid-evaluation showcase, use the deliberately compact scenario in `data/demo-showcase`:
+
+```bash
+mvn exec:java -Dexec.args="--input data/demo-showcase --output output/demo-showcase --time-limit 10"
+```
+
+It contains 11 courses, 36 anonymous students and 144 ranked preferences. UniTime reaches objective 9, matching the CP-SAT proven optimum. The checked-in generated result shows one unavoidable low-weight elective overlap while satisfying the fixed-slot, laboratory, protected-pair and room constraints.
+
 ## Engineering evidence
 
 - [Prompt log](prompts/PROMPT_LOG.md): CoSTAR prompts, negative prompts, reviews, debugging evidence and acceptance checks.
@@ -78,6 +86,7 @@ mvn javafx:run
 - [Live-modification practice](docs_v2/LIVE_MODIFICATION_PRACTICE.md): small evaluator-style changes and the files they exercise.
 - [Principles and practices](docs_v2/PRINCIPLES_AND_PRACTICES.md): prompt engineering, debugging, version control and testing.
 - [File structure](docs_v2/FILE_STRUCTURE.md): annotated repository tree.
+- [Mid-evaluation showcase](data/demo-showcase/README.md): synthetic inputs, a formatted evaluator workbook and solver-generated outputs.
 
 GitHub Actions runs the complete Maven test suite on every push and pull request.
 

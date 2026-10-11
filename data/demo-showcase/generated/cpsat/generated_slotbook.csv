@@ -1,0 +1,12 @@
+course_id,title,semester_group,course_type,instructor,assigned_slot,additional_slot,room,class_size
+"EE2002","Digital Systems","BT02_EE","CORE","Ananth Krishnan","B","","ESB 106",210
+"EE3001","Solid State Devices","BT04_EE","CORE","Amitava B","C","P","ESB 106",210
+"EE2019","Analog Systems and Lab","BT04_EE","CORE","Aniruddhan S","E","T","ESB 127",210
+"EE5141","Wireless and Cellular Communication","MT02_EE1","ELECTIVE","David K","F","","ESB 350",110
+"EE3110","Probability Foundations","MT02_EE1","ELECTIVE","Mani A","B","","ESB 350",55
+"EE5175","Image Signal Processing","MT02_EE1","ELECTIVE","Rajagopalan A","B","","ESB 128",60
+"EE5112","Detection Theory","MT02_EE1","ELECTIVE","Arun Pachai","D","","ESB 129",60
+"EE6180","Advances in Artificial Intelligence","MT02_EE1","ELECTIVE","Pravin Nair","C","","ESB 350",20
+"EE5143","Information Theory","MT02_EE1","ELECTIVE","Srikrishna B","E","","ESB 242",60
+"EE5150","Communication Networks","MT02_EE1","ELECTIVE","Venkatesh R","A","","ESB 128",75
+"EE5178","Modern Computer Vision","MT02_EE1","ELECTIVE","Kaushik Mitra","G","","ESB 127",90

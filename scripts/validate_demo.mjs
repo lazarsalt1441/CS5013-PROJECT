@@ -52,6 +52,10 @@ const slots = parseCsv("slots.csv");
 const conflicts = parseCsv("hard_conflicts.csv");
 const instructors = parseCsv("instructor_preferences.csv");
 const students = parseCsv("student_preferences.csv");
+const unitimeSlotbook = parseCsv("generated/unitime/generated_slotbook.csv");
+const unitimeExplanations = parseCsv("generated/unitime/assignment_explanations.csv");
+const cpsatSlotbook = parseCsv("generated/cpsat/generated_slotbook.csv");
+const cpsatExplanations = parseCsv("generated/cpsat/assignment_explanations.csv");
 
 const courseIds = new Set(courses.map(row => row.course_id));
 const slotIds = new Set(slots.map(row => row.slot_id));
@@ -114,5 +118,24 @@ for (const preferences of byStudent.values()) {
 const expectedPairs = electives.length * (electives.length - 1) / 2;
 requireCondition(coveredPairs.size === expectedPairs,
   `expected complete elective co-demand coverage (${expectedPairs} pairs), found ${coveredPairs.size}`);
+
+for (const [solver, slotbook, explanations] of [
+  ["UniTime", unitimeSlotbook, unitimeExplanations],
+  ["CP-SAT", cpsatSlotbook, cpsatExplanations],
+]) {
+  requireCondition(slotbook.length === courses.length, `${solver}: generated slotbook does not cover every course`);
+  requireCondition(explanations.length === courses.length, `${solver}: explanation output does not cover every course`);
+  requireCondition(slotbook.every(row => courseIds.has(row.course_id) && lectureSlots.has(row.assigned_slot)),
+    `${solver}: generated slotbook contains an unknown course or lecture slot`);
+  const probability = slotbook.find(row => row.course_id === "EE3110");
+  const imaging = slotbook.find(row => row.course_id === "EE5175");
+  requireCondition(probability?.assigned_slot === "B" && imaging?.assigned_slot === "B",
+    `${solver}: expected the minimum-weight EE3110/EE5175 overlap in slot B`);
+  for (const courseId of ["EE3110", "EE5175"]) {
+    const explanation = explanations.find(row => row.course_id === courseId);
+    requireCondition(explanation?.reasons.includes("student co-demand conflict contribution in this solution is 3"),
+      `${solver}: ${courseId} explanation does not expose the unavoidable conflict contribution`);
+  }
+}
 
 console.log(`Demo fixture valid: ${courses.length} courses, ${byStudent.size} students, ${students.length} preferences, ${conflicts.length} protected pairs.`);
