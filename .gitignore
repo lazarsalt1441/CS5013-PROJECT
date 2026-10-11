@@ -6,4 +6,8 @@ target/
 output/**
 !output/.gitkeep
 tmp/
+.tmp_eval/
+portal/.tmp-qa/
+portal/.vercel/
+portal/.env.local
 

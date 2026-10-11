@@ -1,4 +1,4 @@
-name: Java CI
+name: Project CI
 
 on:
   push:
@@ -8,6 +8,27 @@ permissions:
   contents: read
 
 jobs:
+  portal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run portal API contract tests
+        working-directory: portal
+        run: npm test
+
+      - name: Validate portal assets and CSV contracts
+        working-directory: portal
+        run: npm run check
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10

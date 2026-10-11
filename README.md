@@ -41,6 +41,18 @@ The system supports:
 
 See [MANUAL.md](MANUAL.md) for usage and [ARCHITECTURE.md](docs_v2/ARCHITECTURE.md) for the module flow.
 
+## Preference collection portal
+
+The [`portal/`](portal/README.md) directory contains a Vercel-ready web application that collects student course rankings and instructor slot penalties in Google Sheets, exports the exact CSV contracts used by this application, optionally invokes a deployed solver API, and publishes the generated slotbook with explanations.
+
+```bash
+cd portal
+npm test
+npm run check
+```
+
+The demonstration portal intentionally has no student or instructor authentication. Its admin operations use server-side secrets, and its documentation explains the Google Apps Script and Vercel setup.
+
 ## Quick start
 
 Requirements: JDK 17+ and Maven 3.9+.

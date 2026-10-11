@@ -17,8 +17,9 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P009 | Build a generated-scenario testing framework and penalty report | Accepted | `efdf10d`..`e4e7ca9` |
 | P010 | Install the toolchain and run the tests and CLI locally | Accepted | no code change |
 | P011 | Compare the project with UniTime and list improvements | Accepted | analysis; led to P006 |
+| P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
 
-P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it.
+P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
 ## P001 - Project architecture and workflow
 
@@ -450,3 +451,58 @@ Added at review:
 
 - Both repositories were shallow-cloned into a scratch directory and read only.
 - The comparison noted that neither UniTime repository contains JUnit tests.
+
+## P012 - Preference collection and publication portal
+
+### Original prompts
+
+> hey ive made it into a wrapper around the other thing, can you make ur gpt make a vercel.ai host a site for ppl to put input like to collect students_pref.csv and prof_pref.csv sort of data, that we can fit into our model in backend to give out slotbooks can yu please do this
+
+> Demo without authentication. can we use google sheets, or whatver is free. everything?
+
+### CoSTAR prompt
+
+**Context:** The v2 project wraps UniTime, retains CP-SAT as a reference, and consumes `student_preferences.csv` and `instructor_preferences.csv`. The project needs a low-cost demonstration workflow for collecting these preferences before slotbook generation.
+
+**Objective:** Build a Vercel-ready portal with separate student, professor, administrator, and public-result experiences. Store submissions in a free Google Sheet, export the exact Java CSV contracts, support manual solver outputs, and expose a configurable HTTP hook for a deployed Java solver.
+
+**Style:** Dependency-free HTML, CSS, browser JavaScript, and small Node.js Vercel functions. Use explicit validation, accessible controls, responsive layouts, and clearly separated public and administrative actions.
+
+**Tone:** Institution-facing but honest that this is a demonstration without IITM authentication.
+
+**Audience:** Students and faculty submitting preferences, administrators generating a slotbook, and evaluators tracing the data into the solver.
+
+**Response:** Add the portal source, Google Apps Script bridge, Vercel configuration, environment template, deployment manual, CSV export, solver adapter, results publication, automated API contract tests, and CI checks.
+
+### Negative prompt / constraints
+
+Stated or agreed with the developer:
+
+- Do not require paid storage; use Google Sheets / Apps Script for the first deployment.
+- Do not require student or professor authentication in the demonstration.
+- Include the student, professor, administrator, solver, and public-results workflows.
+
+Added at review:
+
+- Do not write production submissions to Vercel's ephemeral filesystem.
+- Do not embed administrator, Google, GitHub, or solver secrets in browser code or Git.
+- Do not rename or approximate the Java input schemas.
+- Do not describe a soft instructor penalty as hard unavailability.
+- Do not claim the Java solver runs inside Vercel when only an external HTTP hook is configured.
+- Do not invite real institutional data before identity, consent, retention, and abuse controls exist.
+
+### Prompt review
+
+- **Storage:** Apps Script serializes writes into `Students`, `Instructors`, `Slotbook`, and `Explanations` tabs in one free Google Sheet.
+- **Idempotency:** A repeated student ID or instructor name replaces that identity's earlier rows instead of silently duplicating a profile.
+- **Schema fit:** Admin exports are exactly `student_id,course_id,rank` and `instructor,slot,penalty,reason`.
+- **Deployment boundary:** Vercel collects and exports data. A separately deployed JVM endpoint may run UniTime/CP-SAT; the manual CSV workflow remains complete without it.
+- **Security:** Student and professor forms are deliberately public; admin actions require two server-side secrets, one at Vercel and one at Apps Script.
+
+### Acceptance and verification
+
+- Catalog generation reads the repository fixture and produces 18 courses and 17 institutional slots.
+- Six Node contract tests verify CSV quoting, public submission routing, input-type rejection, admin authorization, exact exports, and the unconfigured-solver fallback.
+- The static validator checks required assets, JavaScript syntax, JSON, HTML asset references, unique catalog IDs, and both live Java CSV headers.
+- GitHub Actions runs the portal tests and validator independently of the Maven job.
+- Final browser interaction and Google/Vercel environment checks are completed after the external deployments are configured.
