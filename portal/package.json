@@ -1,0 +1,15 @@
+{
+  "name": "iitm-slotbook-preference-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vercel portal for collecting IITM student and instructor slot preferences.",
+  "scripts": {
+    "check": "node scripts/validate.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "sync-catalog": "node scripts/sync-catalog.mjs",
+    "serve": "python3 -m http.server 4173 --directory public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

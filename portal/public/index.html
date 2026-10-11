@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Collect student and instructor preferences for an explainable IITM slotbook.">
+  <title>IITM Explainable Slotbook Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="/"><span class="brand-mark">S</span><span>Slotbook Portal</span></a>
+      <div class="nav-links">
+        <a href="/student">Student</a>
+        <a href="/professor">Professor</a>
+        <a class="keep-mobile" href="/results">Results</a>
+        <a href="/admin">Admin</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">IITM-oriented course slotting</p>
+        <h1>Preferences in. Explainable slotbooks out.</h1>
+        <p class="lead">A focused collection portal for student course demand and instructor slot preferences, designed to feed the UniTime-wrapper model without spreadsheet cleanup.</p>
+        <div class="actions">
+          <a class="button primary" href="/student">Submit student preferences</a>
+          <a class="button secondary" href="/professor">Submit professor preferences</a>
+          <a class="button secondary" href="/results">View published slotbook</a>
+        </div>
+        <div class="notice"><strong>Demonstration deployment:</strong> no IITM authentication is enabled yet. Use mock identifiers and preferences until institutional login and consent controls are added.</div>
+      </div>
+      <aside class="hero-panel" aria-label="How the portal works">
+        <p class="eyebrow">One auditable flow</p>
+        <div class="pipeline">
+          <div class="pipeline-step"><span class="step-number">1</span><div><strong>Collect</strong><span>Students rank courses; instructors score institutional slots.</span></div></div>
+          <div class="pipeline-step"><span class="step-number">2</span><div><strong>Validate</strong><span>Duplicates, missing ranks, invalid penalties, and malformed IDs are rejected.</span></div></div>
+          <div class="pipeline-step"><span class="step-number">3</span><div><strong>Export or solve</strong><span>Admin downloads model-ready CSVs or calls the configured Java solver API.</span></div></div>
+          <div class="pipeline-step"><span class="step-number">4</span><div><strong>Explain</strong><span>The published page pairs each assigned slot with deterministic solver evidence.</span></div></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" aria-labelledby="roles-heading">
+      <p class="eyebrow">Role-specific workflows</p>
+      <h2 id="roles-heading">The right interface for each decision</h2>
+      <div class="card-grid">
+        <article class="card"><h3>Students</h3><p>Rank the courses you genuinely want. Re-submission replaces your earlier list, keeping one clean preference profile per student.</p><a class="card-link" href="/student">Open student form →</a></article>
+        <article class="card"><h3>Professors</h3><p>Mark preferred, acceptable, and discouraged lecture slots with concise operational reasons that map to solver penalties.</p><a class="card-link" href="/professor">Open professor form →</a></article>
+        <article class="card"><h3>Administrators</h3><p>Monitor coverage, export exact CSV contracts, invoke either solver, and publish a timetable with its explanation audit trail.</p><a class="card-link" href="/admin">Open admin dashboard →</a></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="footer-inner"><span>IITM Explainable Slotbook</span><span>Demo data only · UniTime default · CP-SAT reference</span></div></footer>
+</body>
+</html>

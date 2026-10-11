@@ -1,0 +1,383 @@
+{
+  "generated_from": "data/feasible/courses.csv and data/feasible/slots.csv",
+  "source_sha256": {
+    "courses": "677d43b53f7a34705b8cc9335a9c224a624cbf289f6c19cedd264b54ba6887e1",
+    "slots": "92ee62f92c710c60e50048df4645d7f7a2a4ad71b923b5b6aaef44bbf3d98168"
+  },
+  "courses": [
+    {
+      "course_id": "EE1100",
+      "title": "Basic Electrical Engineering",
+      "semester_group": "BT02_SERVICE",
+      "course_type": "CORE",
+      "instructor": "S Krishna",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE1101",
+      "title": "Signals and Systems",
+      "semester_group": "BT02_EE",
+      "course_type": "CORE",
+      "instructor": "Pradeep K",
+      "allowed_slots": [
+        "A",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE2002",
+      "title": "Digital Systems",
+      "semester_group": "BT02_EE",
+      "course_type": "CORE",
+      "instructor": "Ananth Krishnan",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE3001",
+      "title": "Solid State Devices",
+      "semester_group": "BT04_EE",
+      "course_type": "CORE",
+      "instructor": "Amitava B",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE2004",
+      "title": "Digital Signal Processing",
+      "semester_group": "BT04_EE",
+      "course_type": "CORE",
+      "instructor": "R K Ganti",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE2019",
+      "title": "Analog Systems and Lab",
+      "semester_group": "BT04_EE",
+      "course_type": "CORE",
+      "instructor": "Aniruddhan S",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE3005",
+      "title": "Communication Systems",
+      "semester_group": "BT06_EE",
+      "course_type": "ELECTIVE",
+      "instructor": "Giridhar K",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE4502",
+      "title": "Optics for Engineers",
+      "semester_group": "BT06_EE",
+      "course_type": "ELECTIVE",
+      "instructor": "Shanti B",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5141",
+      "title": "Wireless and Cellular Communication",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "David K",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE3110",
+      "title": "Probability Foundations",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Mani A",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5175",
+      "title": "Image Signal Processing",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Rajagopalan A",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5112",
+      "title": "Detection Theory",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Arun Pachai",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE6180",
+      "title": "Advances in Artificial Intelligence",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Pravin Nair",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5143",
+      "title": "Information Theory",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Srikrishna B",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5150",
+      "title": "Communication Networks",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Venkatesh R",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5178",
+      "title": "Modern Computer Vision",
+      "semester_group": "MT02_EE1",
+      "course_type": "ELECTIVE",
+      "instructor": "Kaushik Mitra",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE5320",
+      "title": "Analog IC Design",
+      "semester_group": "MT02_EE6",
+      "course_type": "ELECTIVE",
+      "instructor": "Nagendra K",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    },
+    {
+      "course_id": "EE6332",
+      "title": "Modeling and Optimization in VLSI",
+      "semester_group": "MT02_EE6",
+      "course_type": "ELECTIVE",
+      "instructor": "Ramprasath S",
+      "allowed_slots": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G"
+      ]
+    }
+  ],
+  "slots": [
+    {
+      "slot_id": "A",
+      "category": "LECTURE",
+      "summary": "MON 08:00 · TUE 13:00 · THU 11:00 · FRI 10:00"
+    },
+    {
+      "slot_id": "B",
+      "category": "LECTURE",
+      "summary": "MON 09:00 · TUE 08:00 · WED 13:00 · FRI 11:00"
+    },
+    {
+      "slot_id": "C",
+      "category": "LECTURE",
+      "summary": "MON 10:00 · TUE 09:00 · WED 08:00 · FRI 13:00"
+    },
+    {
+      "slot_id": "D",
+      "category": "LECTURE",
+      "summary": "MON 11:00 · TUE 10:00 · WED 09:00 · THU 13:00"
+    },
+    {
+      "slot_id": "E",
+      "category": "LECTURE",
+      "summary": "TUE 11:00 · WED 10:00 · THU 08:00 · FRI 17:00"
+    },
+    {
+      "slot_id": "F",
+      "category": "LECTURE",
+      "summary": "TUE 17:00 · WED 11:00 · THU 09:00 · FRI 08:00"
+    },
+    {
+      "slot_id": "G",
+      "category": "LECTURE",
+      "summary": "MON 13:00 · WED 17:00 · THU 10:00 · FRI 09:00"
+    },
+    {
+      "slot_id": "H",
+      "category": "LECTURE",
+      "summary": "MON 14:00 · TUE 15:30 · THU 17:00"
+    },
+    {
+      "slot_id": "J",
+      "category": "LECTURE",
+      "summary": "MON 17:00 · WED 14:00 · THU 15:30"
+    },
+    {
+      "slot_id": "K",
+      "category": "LECTURE",
+      "summary": "WED 15:30 · FRI 14:00"
+    },
+    {
+      "slot_id": "L",
+      "category": "LECTURE",
+      "summary": "THU 14:00 · FRI 15:30"
+    },
+    {
+      "slot_id": "M",
+      "category": "LECTURE",
+      "summary": "MON 15:30 · TUE 14:00"
+    },
+    {
+      "slot_id": "P",
+      "category": "LAB",
+      "summary": "MON 14:00"
+    },
+    {
+      "slot_id": "Q",
+      "category": "LAB",
+      "summary": "TUE 14:00"
+    },
+    {
+      "slot_id": "R",
+      "category": "LAB",
+      "summary": "WED 14:00"
+    },
+    {
+      "slot_id": "S",
+      "category": "LAB",
+      "summary": "THU 14:00"
+    },
+    {
+      "slot_id": "T",
+      "category": "LAB",
+      "summary": "FRI 14:00"
+    }
+  ]
+}

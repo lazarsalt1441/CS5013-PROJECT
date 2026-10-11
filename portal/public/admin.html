@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Administer preference collection and publish explainable slotbooks.">
+  <title>Admin Dashboard · Slotbook Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="/"><span class="brand-mark">S</span><span>Slotbook Portal</span></a><div class="nav-links"><a href="/student">Student</a><a href="/professor">Professor</a><a class="keep-mobile" href="/results">Results</a><a aria-current="page" href="/admin">Admin</a></div></nav></header>
+  <main class="page">
+    <header class="page-header"><p class="eyebrow">Administrative control</p><h1>Export inputs, run the solver, publish evidence.</h1><p class="lead">The password is sent only to the Vercel API and kept in this browser tab's session storage. It is never embedded in the site source.</p></header>
+    <section class="form-card" aria-labelledby="login-heading">
+      <h2 id="login-heading">Dashboard access</h2>
+      <div class="dashboard-toolbar"><div class="field"><label for="admin-password">Admin password</label><input id="admin-password" type="password" autocomplete="current-password" placeholder="Configured in Vercel"></div><button id="load-dashboard" class="button primary" type="button">Load dashboard</button></div>
+      <div id="admin-status" class="status"></div>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="metrics" aria-label="Submission statistics">
+        <div class="metric"><strong id="student-count">0</strong><span>unique students</span></div>
+        <div class="metric"><strong id="student-rows">0</strong><span>student preference rows</span></div>
+        <div class="metric"><strong id="instructor-count">0</strong><span>unique instructors</span></div>
+        <div class="metric"><strong id="instructor-rows">0</strong><span>instructor preference rows</span></div>
+      </div>
+      <div class="admin-sections">
+        <section class="admin-panel"><h2>1. Export model inputs</h2><p>Downloads use the exact schemas parsed by the Java application. Extra portal metadata such as programme and timestamps is intentionally omitted.</p><div class="actions"><button id="download-students" class="button secondary" type="button">Download student_preferences.csv</button><button id="download-instructors" class="button secondary" type="button">Download instructor_preferences.csv</button><button id="refresh-dashboard" class="button secondary" type="button">Refresh counts</button></div></section>
+        <section class="admin-panel"><h2>2. Generate through backend</h2><p>If `SOLVER_API_URL` is configured, Vercel sends both current CSVs to the Java wrapper and publishes the returned slotbook. Otherwise use the manual workflow below.</p><div class="actions"><select id="solver-choice" style="width:auto"><option value="unitime">UniTime (default)</option><option value="cpsat">CP-SAT reference</option></select><button id="run-solver" class="button teal" type="button">Generate slotbook</button></div><div id="solver-status" class="status"></div></section>
+        <section class="admin-panel"><h2>3. Publish manually generated results</h2><p>Run the Java CLI with the downloaded preferences, then select its two output files. Headers are validated before anything is published.</p><div class="form-grid"><div class="field"><label for="slotbook-file">generated_slotbook.csv</label><input id="slotbook-file" type="file" accept=".csv,text/csv"></div><div class="field"><label for="explanations-file">assignment_explanations.csv</label><input id="explanations-file" type="file" accept=".csv,text/csv"></div></div><div class="actions" style="margin-top:18px"><button id="publish-results" class="button primary" type="button">Validate and publish</button><a class="button secondary" href="/results">Open public results</a></div><div id="publish-status" class="status"></div></section>
+        <section class="admin-panel"><h2>Submission preview</h2><div class="table-wrap"><table><thead><tr><th>Student</th><th>Course</th><th>Rank</th></tr></thead><tbody id="student-preview"></tbody></table></div><div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Instructor</th><th>Slot</th><th>Penalty</th><th>Reason</th></tr></thead><tbody id="instructor-preview"></tbody></table></div></section>
+        <section class="admin-panel"><h2>Reset demonstration data</h2><p>This clears submissions and published results from the Google Sheet. It cannot be undone.</p><button id="clear-data" class="button danger" type="button">Clear all demo data</button><div id="clear-status" class="status"></div></section>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>Admin actions are server-authorized</span><a href="/">Back to portal</a></div></footer>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/admin.js"></script>
+</body>
+</html>

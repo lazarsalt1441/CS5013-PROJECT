@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Rank course preferences for the IITM Explainable Slotbook.">
+  <title>Student Preferences · Slotbook Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="/"><span class="brand-mark">S</span><span>Slotbook Portal</span></a><div class="nav-links"><a aria-current="page" href="/student">Student</a><a href="/professor">Professor</a><a class="keep-mobile" href="/results">Results</a><a href="/admin">Admin</a></div></nav></header>
+  <main class="page">
+    <header class="page-header">
+      <p class="eyebrow">Student preference collection</p>
+      <h1>Rank the courses you want to take.</h1>
+      <p class="lead">Your ordering contributes to co-demand weights: frequently requested course pairs receive a larger clash penalty. It does not guarantee allocation to a course.</p>
+    </header>
+    <div class="notice"><strong>Demo mode:</strong> there is no identity verification. Use a mock student ID; do not enter personal data beyond what is necessary for this demonstration.</div>
+    <form id="student-form" class="form-card" novalidate>
+      <div class="form-grid">
+        <div class="field"><label for="student-id">Student ID</label><input id="student-id" name="student_id" maxlength="30" pattern="[A-Za-z0-9_-]{3,30}" placeholder="S031" required><span class="hint">3–30 letters, digits, underscores, or hyphens.</span></div>
+        <div class="field"><label for="programme">Programme / cohort</label><input id="programme" name="programme" maxlength="60" placeholder="B.Tech EE" required></div>
+        <div class="field"><label for="year">Year</label><select id="year" name="year" required><option value="">Select year</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option></select></div>
+        <div class="field"><label for="course-picker">Add a course</label><div class="picker-row"><select id="course-picker"><option value="">Loading catalog…</option></select><button id="add-course" class="button secondary" type="button">Add</button></div></div>
+        <div class="field full"><label>Ranked preferences</label><span class="hint">Add 1–10 unique courses. Use the arrows to reorder; rank 1 is most preferred.</span><ol id="ranked-list" class="ranked-list" aria-live="polite"></ol></div>
+      </div>
+      <div class="actions" style="margin-top:24px"><button id="student-submit" class="button primary" type="submit">Save my preferences</button><button id="student-reset" class="button secondary" type="button">Clear form</button></div>
+      <div id="student-status" class="status"></div>
+    </form>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>Export contract: student_id, course_id, rank</span><a href="/">Back to portal</a></div></footer>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/student.js"></script>
+</body>
+</html>

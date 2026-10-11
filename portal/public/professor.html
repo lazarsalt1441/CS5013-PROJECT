@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Submit instructor slot preferences for the IITM Explainable Slotbook.">
+  <title>Professor Preferences · Slotbook Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="/"><span class="brand-mark">S</span><span>Slotbook Portal</span></a><div class="nav-links"><a href="/student">Student</a><a aria-current="page" href="/professor">Professor</a><a class="keep-mobile" href="/results">Results</a><a href="/admin">Admin</a></div></nav></header>
+  <main class="page">
+    <header class="page-header">
+      <p class="eyebrow">Instructor preference collection</p>
+      <h1>Score the slots that affect your teaching.</h1>
+      <p class="lead">Only selected slots are exported. Zero means preferred, two means acceptable, and eight means discouraged. These are soft penalties; hard unavailability must be modelled separately by the administrator.</p>
+    </header>
+    <div class="notice"><strong>Demo mode:</strong> re-submitting the same instructor name replaces the earlier preference rows. No institutional authentication is enabled.</div>
+    <form id="professor-form" class="form-card" novalidate>
+      <div class="field" style="margin-bottom:20px"><label for="instructor">Instructor name or demo identifier</label><input id="instructor" maxlength="80" placeholder="Professor A" required></div>
+      <div class="field"><label>Lecture slots</label><span class="hint">Leave “Not specified” where you have no preference. Add a concrete reason for discouraged slots.</span><div id="preference-grid" class="preference-grid" style="margin-top:12px" aria-live="polite"></div></div>
+      <div class="actions" style="margin-top:24px"><button id="professor-submit" class="button primary" type="submit">Save slot preferences</button><button id="professor-reset" class="button secondary" type="button">Reset</button></div>
+      <div id="professor-status" class="status"></div>
+    </form>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>Export contract: instructor, slot, penalty, reason</span><a href="/">Back to portal</a></div></footer>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/professor.js"></script>
+</body>
+</html>

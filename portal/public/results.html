@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Published IITM explainable slotbook results.">
+  <title>Published Slotbook · Slotbook Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Primary navigation"><a class="brand" href="/"><span class="brand-mark">S</span><span>Slotbook Portal</span></a><div class="nav-links"><a href="/student">Student</a><a href="/professor">Professor</a><a class="keep-mobile" aria-current="page" href="/results">Results</a><a href="/admin">Admin</a></div></nav></header>
+  <main class="page">
+    <header class="page-header"><p class="eyebrow">Published output</p><h1>Slotbook with an explanation trail.</h1><p class="lead">Search for a course to inspect its assigned slot and the deterministic evidence exported by the solver.</p></header>
+    <div id="results-status" class="status visible info">Loading the latest published slotbook…</div>
+    <section id="results-content" hidden>
+      <div class="results-meta"><span id="result-solver" class="pill"></span><span id="result-date" class="pill"></span><span id="result-count" class="pill"></span></div>
+      <div class="field" style="max-width:500px;margin-bottom:18px"><label for="course-search">Search courses</label><input id="course-search" type="search" placeholder="Course ID, title, instructor, or slot"></div>
+      <div class="table-wrap"><table><thead><tr><th>Course</th><th>Title</th><th>Instructor</th><th>Slot</th><th>Room</th><th>Explanation</th></tr></thead><tbody id="results-table"></tbody></table></div>
+      <article id="explanation-card" class="explanation" hidden></article>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>Explanations are derived from constraints and the final assignment</span><a href="/">Back to portal</a></div></footer>
+  <script src="/assets/common.js"></script>
+  <script src="/assets/results.js"></script>
+</body>
+</html>
