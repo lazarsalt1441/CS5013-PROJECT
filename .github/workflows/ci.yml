@@ -29,6 +29,9 @@ jobs:
         working-directory: portal
         run: npm run check
 
+      - name: Validate mid-evaluation demo fixture
+        run: node scripts/validate_demo.mjs
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -56,6 +59,25 @@ jobs:
         run: >-
           mvn --batch-mode --no-transfer-progress exec:java
           -Dexec.args="--input data/feasible --output output/ci-demo-cpsat --solver cpsat"
+
+      - name: Generate mid-evaluation showcase (UniTime)
+        run: >-
+          mvn --batch-mode --no-transfer-progress exec:java
+          -Dexec.args="--input data/demo-showcase --output output/demo-showcase --time-limit 10"
+
+      - name: Generate mid-evaluation showcase (CP-SAT reference)
+        run: >-
+          mvn --batch-mode --no-transfer-progress exec:java
+          -Dexec.args="--input data/demo-showcase --output output/demo-showcase-cpsat --solver cpsat --time-limit 10"
+
+      - name: Upload generated showcase slotbooks
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-showcase-results
+          path: |
+            output/demo-showcase/
+            output/demo-showcase-cpsat/
+          if-no-files-found: error
 
       - name: Upload test reports
         if: always()

@@ -507,3 +507,47 @@ Added at review:
 - GitHub Actions runs the portal tests and validator independently of the Maven job.
 - Live deployment testing caught Google's one-time `ContentService` redirect returning an HTML 404 when a POST redirect was followed automatically. The Vercel bridge now retrieves the validated `script.googleusercontent.com` response URL explicitly with a GET, with a regression test covering the behavior.
 - Final browser interaction and Google/Vercel environment checks are completed after the external deployments are configured.
+
+## P013 - Mid-evaluation showcase dataset
+
+### Original prompt
+
+> can you make some nice test case, take it as demo data for us to show a generated slotbook
+
+### CoSTAR prompt
+
+**Context:** The deployed portal collects solver-compatible preferences, while the Java wrapper needs a concise scenario that visibly demonstrates fixed courses, laboratories, shared rooms, protected pairs, faculty preferences, historical stability and student co-demand.
+
+**Objective:** Create a synthetic mid-evaluation dataset, generate it through both UniTime and CP-SAT, and publish an explainable slotbook that can be demonstrated in two minutes.
+
+**Style:** Keep the case small and narratively clear. Use recognisable preference clusters and enough competing demand to force a genuine optimisation trade-off. Include a formatted workbook for inspection and the five canonical CSV inputs for the solver.
+
+**Tone:** Evaluator-facing, factual and easy to defend from the code and output.
+
+**Audience:** CS5013 evaluators and team members demonstrating the portal-to-solver workflow.
+
+**Response:** Add `data/demo-showcase`, an evaluator workbook, documented commands, CI generation with both solvers, downloadable output artifacts, and a published slotbook with deterministic explanations.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not use real roll numbers, names or submitted student preferences.
+- Do not hand-author the final slotbook; generate it with the repository's solver workflow.
+- Do not claim every preference is satisfied; surface the lowest-cost unavoidable conflict.
+- Do not make all constraints soft. Fixed slots, labs, protected pairs and room collisions remain hard rules.
+- Do not make the case so large that its trade-offs cannot be explained during a two-minute evaluation.
+- Do not publish a result until both input validation and CI generation succeed.
+
+### Prompt review
+
+- **Scenario shape:** Eleven courses include two fixed core courses, one fixed laboratory and eight electives competing for seven lecture slots.
+- **Demand model:** Thirty anonymous students form AI/vision, communications, theory and cross-domain preference clusters, producing 120 ranked rows.
+- **Traceability:** Six protected pairs and twenty instructor preference rows create alternatives that explanations can classify as impossible or more costly.
+- **Presentation:** The workbook puts the scenario metrics and a five-step evaluator walkthrough before the underlying source tabs.
+
+### Acceptance and verification
+
+- The workbook contains the same five solver inputs as the CSV fixture and contains no formula errors.
+- GitHub Actions runs the normal tests, then generates UniTime and CP-SAT outputs for the showcase and uploads both as an artifact.
+- Final objective comparison and live-publication checks are recorded after CI completes.

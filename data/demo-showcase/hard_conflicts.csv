@@ -1,0 +1,7 @@
+course_1,course_2,reason
+EE3001,EE2019,BT04 EE core courses cannot clash
+EE5141,EE3110,MT02 breadth courses must remain clash-free
+EE5141,EE5112,Communication and detection pathway protection
+EE3110,EE5143,Probability and information theory pathway protection
+EE5175,EE6180,AI and imaging pathway protection
+EE5150,EE5178,Networks and vision are a high-demand elective pair
