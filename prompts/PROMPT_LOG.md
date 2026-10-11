@@ -18,6 +18,8 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P010 | Install the toolchain and run the tests and CLI locally | Accepted | no code change |
 | P011 | Compare the project with UniTime and list improvements | Accepted | analysis; led to P006 |
 | P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
+| P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
+| P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -555,3 +557,39 @@ Added at review:
 - Both outputs place EE3110 and EE5175 together in slot B, leaving the minimum-weight unavoidable elective conflict. Their explanations each report student-conflict contribution 3.
 - The four solver-generated CSVs are checked in under `data/demo-showcase/generated`; they are not hand-authored.
 - The UniTime result is published to the live portal after the final upload verification.
+
+## P014 - Mid-evaluation submission and viva pack
+
+### Original prompt
+
+> Dear Students, Here is the format, expectations, and deliverables for the upcoming Mid-Evaluation... Please submit a pdf outlining how you are applying the engineering principles taught in class across your project lifecycle. The document must be 3 pages max... System Architecture / Flowchart... Brief Presentation (2 Minutes)... Live Code Modification...
+
+### CoSTAR prompt
+
+**Context:** The repository now contains a UniTime wrapper, CP-SAT reference, preference portal, prompt register, automated tests, and a CI-verified showcase that is published on the live results page.
+
+**Objective:** Produce a submission-ready, maximum-three-page practices PDF and a compact viva pack that reflects the current portal-to-publication system rather than the older solver-only scope.
+
+**Style:** Evidence-led academic engineering document with readable tables, a clear system diagram, timed speaking notes, and small code-change drills.
+
+**Tone:** Precise, non-promotional, and honest about synthetic data, heuristic limits, and the demonstration authentication boundary.
+
+**Audience:** CS5013 TAs evaluating prompt practice, debugging, Git usage, testing, architecture understanding, and individual code ownership.
+
+**Response:** Add an editable DOCX, exactly three-page PDF, SVG and PNG architecture soft copy, two-minute script, demonstration order, viva answers, and live-modification exercises.
+
+### Negative prompt / constraints
+
+- Do not exceed three PDF pages.
+- Do not reuse outdated v1 test counts or omit the preference portal.
+- Do not invent test evidence or claim that local Maven ran when only CI evidence is available.
+- Do not describe an LLM as the source of solver decisions or authoritative explanations.
+- Do not include secrets, real student data, or production-authentication claims.
+- Do not create presentation material that the team cannot trace to concrete files.
+
+### Prompt review and acceptance
+
+- Claims were cross-checked against the CI workflow, test sources, prompt log, demo validator, retained generated outputs, and the live public result.
+- The document distinguishes executed local Node checks from the last verified Java CI result.
+- The architecture includes collection, persistence, validation, both solvers, deterministic explanation, and publication.
+- The DOCX and PDF are rendered page by page before acceptance; the PDF must report exactly three pages.

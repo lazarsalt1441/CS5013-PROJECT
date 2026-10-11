@@ -1,6 +1,6 @@
 # Verification Record (v2)
 
-Date: 10 October 2026
+Date: 11 October 2026
 
 ## Environment
 
@@ -62,4 +62,12 @@ but cannot clash: Both are compulsory for the same cohort
 ## Not verified in this record
 
 - **JavaFX app:** the manual smoke test in [TEST_PLAN.md](TEST_PLAN.md#manual-smoke-tests) needs a graphical desktop and wasn't run. All JavaFX sources compile.
-- **Practices PDF:** the v2 PDF wasn't generated because reportlab isn't installed on the verification machine. The v1 PDF in `docs_v1/` is unchanged.
+
+## Mid-evaluation readiness
+
+- The portal contract suite passes all 7 Node tests.
+- The portal validator passes with 18 catalog courses, 17 slots, and 21 required assets.
+- The showcase validator passes with 11 courses, 36 synthetic students, 144 preference rows, and 6 protected pairs.
+- CI generated the showcase with both engines: UniTime objective 9 and CP-SAT proven optimum 9.
+- The UniTime result is published at <https://cs5013-project-portal.vercel.app/results>, with 11 inspectable course explanations.
+- `mid_evaluation/principles_and_practices.pdf` contains exactly three Letter pages; all pages were rendered and visually inspected, and the editable DOCX has no high, medium, or low accessibility findings.

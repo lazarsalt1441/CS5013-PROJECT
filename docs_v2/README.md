@@ -66,6 +66,7 @@ mvn javafx:run
 - [Live-modification practice](LIVE_MODIFICATION_PRACTICE.md): small evaluator-style changes and the files they exercise.
 - [Principles and practices](PRINCIPLES_AND_PRACTICES.md): prompt engineering, debugging, version control and testing.
 - [File structure](FILE_STRUCTURE.md): annotated repository tree.
+- [Mid-evaluation pack](mid_evaluation/README.md): three-page PDF, architecture soft copy, two-minute script, demo order, and live-modification drills.
 
 GitHub Actions runs the complete Maven test suite on every push and pull request.
 

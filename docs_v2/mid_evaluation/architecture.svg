@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">IITM Explainable Slotbook System Architecture</title>
+  <desc id="desc">Preference collection flows through Vercel and Google Sheets into validated CSVs, the Java service, UniTime or CP-SAT, deterministic explanations, and public results.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315b6d"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#17364a" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .title { font: 700 40px Arial, sans-serif; fill: #102f46; }
+      .subtitle { font: 400 21px Arial, sans-serif; fill: #567080; }
+      .lane { font: 700 16px Arial, sans-serif; fill: #397283; letter-spacing: 2px; }
+      .node-title { font: 700 22px Arial, sans-serif; fill: #102f46; }
+      .node-body { font: 400 16px Arial, sans-serif; fill: #496473; }
+      .tag { font: 700 14px Arial, sans-serif; fill: #ffffff; }
+      .arrow { stroke: #315b6d; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .return { stroke: #d17745; stroke-width: 4; fill: none; stroke-dasharray: 10 8; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f5f8f9"/>
+  <text x="90" y="78" class="title">IITM Explainable Slotbook</text>
+  <text x="90" y="113" class="subtitle">Collection, optimisation, evidence, and publication in one auditable flow</text>
+
+  <text x="90" y="175" class="lane">COLLECT AND STORE</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="205" width="310" height="160" rx="20" fill="#ffffff"/>
+    <rect x="90" y="205" width="310" height="12" rx="6" fill="#3a8b9c"/>
+    <text x="120" y="260" class="node-title">Role specific portal</text>
+    <text x="120" y="300" class="node-body">Student rankings</text>
+    <text x="120" y="328" class="node-body">Professor slot penalties</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="485" y="205" width="310" height="160" rx="20" fill="#ffffff"/>
+    <rect x="485" y="205" width="310" height="12" rx="6" fill="#3a8b9c"/>
+    <text x="515" y="260" class="node-title">Vercel API layer</text>
+    <text x="515" y="300" class="node-body">Schema validation</text>
+    <text x="515" y="328" class="node-body">Admin authorisation</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="880" y="205" width="310" height="160" rx="20" fill="#ffffff"/>
+    <rect x="880" y="205" width="310" height="12" rx="6" fill="#3a8b9c"/>
+    <text x="910" y="260" class="node-title">Apps Script bridge</text>
+    <text x="910" y="300" class="node-body">Atomic profile replacement</text>
+    <text x="910" y="328" class="node-body">Administrative actions</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1275" y="205" width="235" height="160" rx="20" fill="#ffffff"/>
+    <rect x="1275" y="205" width="235" height="12" rx="6" fill="#3a8b9c"/>
+    <text x="1305" y="260" class="node-title">Google Sheets</text>
+    <text x="1305" y="300" class="node-body">Inputs</text>
+    <text x="1305" y="328" class="node-body">Published outputs</text>
+  </g>
+  <path class="arrow" d="M 400 285 L 485 285"/>
+  <path class="arrow" d="M 795 285 L 880 285"/>
+  <path class="arrow" d="M 1190 285 L 1275 285"/>
+
+  <text x="90" y="445" class="lane">VALIDATE SOLVE AND EXPLAIN</text>
+  <g filter="url(#shadow)">
+    <rect x="90" y="475" width="330" height="190" rx="20" fill="#ffffff"/>
+    <rect x="90" y="475" width="330" height="12" rx="6" fill="#315b6d"/>
+    <text x="120" y="530" class="node-title">Five canonical CSVs</text>
+    <text x="120" y="570" class="node-body">Courses, slots, hard conflicts</text>
+    <text x="120" y="598" class="node-body">Instructor and student preferences</text>
+    <rect x="120" y="620" width="156" height="28" rx="14" fill="#315b6d"/>
+    <text x="138" y="640" class="tag">Exact contracts</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="505" y="475" width="300" height="190" rx="20" fill="#ffffff"/>
+    <rect x="505" y="475" width="300" height="12" rx="6" fill="#315b6d"/>
+    <text x="535" y="530" class="node-title">Java service</text>
+    <text x="535" y="570" class="node-body">Parse and validate</text>
+    <text x="535" y="598" class="node-body">TimeGrid and Objective</text>
+    <text x="535" y="626" class="node-body">Single domain definition</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="890" y="475" width="300" height="190" rx="20" fill="#ffffff"/>
+    <rect x="890" y="475" width="300" height="12" rx="6" fill="#315b6d"/>
+    <text x="920" y="530" class="node-title">Solver adapters</text>
+    <text x="920" y="570" class="node-body">UniTime cpsolver default</text>
+    <text x="920" y="598" class="node-body">OR Tools CP SAT reference</text>
+    <text x="920" y="626" class="node-body">Shared hard and soft rules</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="1275" y="475" width="235" height="190" rx="20" fill="#ffffff"/>
+    <rect x="1275" y="475" width="235" height="12" rx="6" fill="#d17745"/>
+    <text x="1305" y="530" class="node-title">Evidence output</text>
+    <text x="1305" y="570" class="node-body">Slotbook CSV</text>
+    <text x="1305" y="598" class="node-body">Explanations CSV</text>
+    <text x="1305" y="626" class="node-body">Alternatives</text>
+  </g>
+  <path class="arrow" d="M 420 570 L 505 570"/>
+  <path class="arrow" d="M 805 570 L 890 570"/>
+  <path class="arrow" d="M 1190 570 L 1275 570"/>
+  <path class="arrow" d="M 1392 365 L 1392 475"/>
+
+  <g filter="url(#shadow)">
+    <rect x="495" y="755" width="610" height="90" rx="45" fill="#102f46"/>
+    <text x="590" y="798" style="font:700 23px Arial,sans-serif;fill:#ffffff">Public result with inspectable reasons</text>
+    <text x="640" y="827" style="font:400 16px Arial,sans-serif;fill:#cce0e6">The solver decides. Deterministic evidence explains.</text>
+  </g>
+  <path class="return" d="M 1392 665 C 1392 730 1240 800 1105 800"/>
+  <path class="return" d="M 495 800 C 310 800 210 720 210 665"/>
+</svg>
+
