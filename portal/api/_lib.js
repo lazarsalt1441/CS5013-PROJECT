@@ -53,12 +53,28 @@ async function callSheets(payload, { admin = false } = {}) {
   if (!SHEETS_URL) throw new Error("GOOGLE_APPS_SCRIPT_URL is not configured.");
   const body = { ...payload };
   if (admin) body.admin_key = process.env.GOOGLE_APPS_SCRIPT_ADMIN_KEY || "";
-  const response = await fetch(SHEETS_URL, {
+  let response = await fetch(SHEETS_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(body),
-    redirect: "follow"
+    // Apps Script returns a one-time googleusercontent URL for ContentService
+    // responses. Following the POST automatically can replay the POST against
+    // that URL and yield Google's HTML 404 page, so retrieve it explicitly.
+    redirect: "manual"
   });
+  if ([301, 302, 303, 307, 308].includes(response.status)) {
+    const location = response.headers && response.headers.get("location");
+    if (!location) throw new Error("Google Sheets bridge redirected without a response URL.");
+    const redirectUrl = new URL(location);
+    if (redirectUrl.protocol !== "https:" || redirectUrl.hostname !== "script.googleusercontent.com") {
+      throw new Error("Google Sheets bridge returned an unexpected redirect.");
+    }
+    response = await fetch(redirectUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      redirect: "follow"
+    });
+  }
   const text = await response.text();
   let result;
   try {

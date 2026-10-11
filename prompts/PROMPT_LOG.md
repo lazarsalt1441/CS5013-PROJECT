@@ -502,7 +502,8 @@ Added at review:
 ### Acceptance and verification
 
 - Catalog generation reads the repository fixture and produces 18 courses and 17 institutional slots.
-- Six Node contract tests verify CSV quoting, public submission routing, input-type rejection, admin authorization, exact exports, and the unconfigured-solver fallback.
+- Seven Node contract tests verify CSV quoting, public submission routing, Apps Script redirect handling, input-type rejection, admin authorization, exact exports, and the unconfigured-solver fallback.
 - The static validator checks required assets, JavaScript syntax, JSON, HTML asset references, unique catalog IDs, and both live Java CSV headers.
 - GitHub Actions runs the portal tests and validator independently of the Maven job.
+- Live deployment testing caught Google's one-time `ContentService` redirect returning an HTML 404 when a POST redirect was followed automatically. The Vercel bridge now retrieves the validated `script.googleusercontent.com` response URL explicitly with a GET, with a regression test covering the behavior.
 - Final browser interaction and Google/Vercel environment checks are completed after the external deployments are configured.

@@ -60,6 +60,25 @@ test("public student submission is forwarded to the student action", async () =>
   assert.equal(parsed(res).rows_saved, 2);
 });
 
+test("Apps Script ContentService redirects are retrieved with a GET", async () => {
+  const calls = [];
+  global.fetch = async (url, options) => {
+    calls.push({ url: String(url), method: options.method });
+    if (calls.length === 1) {
+      return {
+        status: 302,
+        headers: { get(name) { return name === "location" ? "https://script.googleusercontent.com/macros/echo?token=test" : null; } }
+      };
+    }
+    return sheetsResponse({ ok: true, message: "saved", rows_saved: 1 });
+  };
+  const res = responseRecorder();
+  await submit(request("POST", { type: "student", payload: { student_id: "S101", preferences: [] } }), res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(calls.map(call => call.method), ["POST", "GET"]);
+  assert.match(calls[1].url, /^https:\/\/script\.googleusercontent\.com\//);
+});
+
 test("submission endpoint rejects an unknown preference type", async () => {
   const res = responseRecorder();
   await submit(request("POST", { type: "observer", payload: {} }), res);
