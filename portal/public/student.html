@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Rank course preferences for the IITM Explainable Slotbook.">
   <title>Student Preferences · Slotbook Portal</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%23123a5a%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-size=%2718%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3ES%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
@@ -18,7 +19,7 @@
     <div class="notice"><strong>Demo mode:</strong> there is no identity verification. Use a mock student ID; do not enter personal data beyond what is necessary for this demonstration. A grade card is personal data: for demonstrations, upload a synthetic card (see <code>tests/fixtures</code> in the repository) rather than a real one.</div>
     <form id="student-form" class="form-card" novalidate>
       <div class="form-grid">
-        <div class="field"><label for="student-id">Student ID</label><input id="student-id" name="student_id" maxlength="30" pattern="[A-Za-z0-9_-]{3,30}" placeholder="S031" required><span class="hint">3–30 letters, digits, underscores, or hyphens.</span></div>
+        <div class="field"><label for="student-id">Student ID</label><input id="student-id" name="student_id" maxlength="30" pattern="[A-Za-z0-9_\-]{3,30}" placeholder="S031" required><span class="hint">3–30 letters, digits, underscores, or hyphens.</span></div>
         <div class="field"><label for="programme">Programme / cohort</label><input id="programme" name="programme" maxlength="60" placeholder="B.Tech EE" required></div>
         <div class="field"><label for="year">Year</label><select id="year" name="year" required><option value="">Select year</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option></select></div>
         <div class="field"><label for="course-picker">Add a course</label><div class="picker-row"><select id="course-picker"><option value="">Loading catalog…</option></select><button id="add-course" class="button secondary" type="button">Add</button></div></div>

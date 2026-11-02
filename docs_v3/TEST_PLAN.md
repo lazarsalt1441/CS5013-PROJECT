@@ -193,6 +193,7 @@ Required files exist, every JS file parses, JSON is valid, HTML asset links reso
 - `.env.example` keeps `DATABASE_URL` as a placeholder and contains no Neon password;
 - migrations are numbered without gaps; a `DROP TABLE` needs a `-- destructive: reviewed` note;
 - every committed PDF fixture with text carries the `SYNTHETIC` marker. This was checked by temporarily adding a real grade card, which the check rejected.
+- every HTML `pattern` attribute compiles with the browser's RegExp `v` flag, and every page declares a favicon.
 
 ## CLI demonstrations in CI
 
