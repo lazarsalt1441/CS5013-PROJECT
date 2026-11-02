@@ -62,3 +62,15 @@ The method is unchanged from [v2](../docs_v2/DEBUGGING.md): reproduce, observe, 
 - **Observe:** First `UnknownHost`. With a proxy configured, 403 from the egress proxy for `repo.maven.apache.org` and `repo1.maven.org`.
 - **Isolate:** A network policy of the AI build sandbox, not a project fault. Node packages and PostgreSQL were reachable.
 - **Response:** No workaround around the policy. The new Java classes and their 19 JUnit tests were compiled with `javac` and run against minimal JUnit-API stand-ins kept outside the repository. The full Maven suite is left to CI, and [VERIFICATION.md](VERIFICATION.md) records exactly which evidence came from where.
+
+### 8. Every PDF upload failed on Node 20, and the error blamed the file
+
+- **Reproduce:** The first CI run on PR #1 failed 5 portal tests, all of which read a real PDF. Locally on Node 22 all of them passed.
+- **Observe:** Each failure said "The grade card could not be read as a PDF". The synthetic fixture is a valid PDF.
+- **Hypothesize:** The fixture was fine, and the error message was hiding the real exception. The difference was the Node version (CI 20, local 22).
+- **Isolate:** On Node 20.20, calling unpdf directly gave the real error, "Serverless PDF.js bundle could not be resolved: ReferenceError: Iterator is not defined". unpdf declares `engines: node >=22`, which npm reports only as a warning.
+- **Correct:**
+  - Require Node 22 in `portal/package.json` (Vercel selects the runtime from it) and in CI.
+  - In `_gradecard.js`, translate only pdf.js file errors (`InvalidPDFException`, `PasswordException` and similar) into a student-facing message, and rethrow anything else, so it becomes a logged 500.
+- **Test:** "a PDF library fault is not reported to the student as a bad file" simulates a library failure and checks that it is not turned into a `GradeCardError`. The suite is now 56/56.
+- **Lesson:** A catch-all that converts every exception into a friendly message turns an outage into a misleading user error. Catch only the errors you mean to translate.

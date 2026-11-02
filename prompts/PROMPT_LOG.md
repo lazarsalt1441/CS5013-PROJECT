@@ -20,7 +20,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
 | P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
-| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (Java suite pending CI) | `ebb9c28`..current |
+| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -671,12 +671,12 @@ Commits, each leaving the suites green: `ebb9c28` (this log entry), `7591cca` (P
 
 | Check | Where | Result |
 |---|---|---|
-| Portal unit and contract tests | local | 55/55 |
+| Portal unit and contract tests | local (Node 22); CI after the Node 22 fix | 56/56 |
 | Portal integration tests | local PostgreSQL 16.15 | 4/4; all 4 skip without `TEST_DATABASE_URL` |
 | `npm run check` | local | pass; rejected a real grade card when one was copied in |
 | Browser end to end | local, headless Chrome | professor, student and admin flows as documented; no console errors |
 | New Java tests (19) | local, `javac --release 17` with JUnit stand-ins | 19/19 |
-| Full Maven suite (71) | CI | pending; Maven Central blocked in the build sandbox |
+| Full Maven suite (71) | CI run 41429007442 | **71/71**; CLI demo printed 22 warnings and matched the golden file |
 | Man page | local groff | lint clean; committed rendering current |
 
-The full record is in `docs_v3/VERIFICATION.md`. Its "left to CI" section is to be updated with the first CI run on the pushed branch.
+The full record is in `docs_v3/VERIFICATION.md`. The first CI run on PR #1 passed the Java job (71/71) but failed 5 portal tests on Node 20. The cause was that `unpdf` requires Node 22, and a catch-all hid it behind a "bad PDF" message. Both were fixed in a follow-up commit; see `docs_v3/DEBUGGING.md` §8.

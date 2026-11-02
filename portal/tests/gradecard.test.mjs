@@ -82,3 +82,17 @@ test("uploads that are not usable PDFs fail with a clear message", async () => {
   await assert.rejects(g.parseGradeCard(fixture("no_text_layer.pdf")), /No course rows/);
   await assert.rejects(g.parseGradeCard(Buffer.from("%PDF-1.4 garbage").toString("base64")), /could not be read/);
 });
+
+test("a PDF library fault is not reported to the student as a bad file", async () => {
+  // Regression: on Node 20 unpdf could not load, and every upload was
+  // reported as "could not be read as a PDF", hiding a server fault.
+  const unpdf = require("unpdf");
+  const original = unpdf.getDocumentProxy;
+  unpdf.getDocumentProxy = async () => { throw new ReferenceError("Iterator is not defined"); };
+  try {
+    await assert.rejects(g.parseGradeCard(fixture("synthetic_grade_card.pdf")), error =>
+      error instanceof ReferenceError && !(error instanceof g.GradeCardError));
+  } finally {
+    unpdf.getDocumentProxy = original;
+  }
+});

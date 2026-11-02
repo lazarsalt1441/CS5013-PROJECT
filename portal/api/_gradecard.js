@@ -12,6 +12,9 @@
 
 const MAX_PDF_BYTES = 3_000_000;
 
+/** pdf.js error names that mean the uploaded file itself is malformed. */
+const PDF_FILE_ERRORS = new Set(["InvalidPDFException", "FormatError", "MissingPDFException", "UnexpectedResponseException"]);
+
 /** Grades that do not count as completing a course (agreed in P015). */
 const NOT_COMPLETED_GRADES = Object.freeze(["U", "W", "I"]);
 
@@ -108,9 +111,17 @@ async function extractRows(bytes) {
   try {
     pdf = await getDocumentProxy(new Uint8Array(bytes));
   } catch (error) {
-    throw new GradeCardError(/password/i.test(error.message)
-      ? "The grade card is password-protected; upload an unlocked copy."
-      : "The grade card could not be read as a PDF.");
+    // Only problems with the uploaded file become a user-facing message.
+    // Anything else (e.g. the PDF library failing to load on an unsupported
+    // Node version) is a server fault and must surface as a logged 500,
+    // not as "your PDF is bad".
+    if (error && error.name === "PasswordException") {
+      throw new GradeCardError("The grade card is password-protected; upload an unlocked copy.");
+    }
+    if (error && PDF_FILE_ERRORS.has(error.name)) {
+      throw new GradeCardError("The grade card could not be read as a PDF.");
+    }
+    throw error;
   }
   const rows = [];
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {

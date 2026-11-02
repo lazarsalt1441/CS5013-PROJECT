@@ -6,7 +6,7 @@ This record separates what was **run** from what is **left to CI**. The AI build
 
 ## Environment
 
-- Node.js 22.23 (CI: Node 20); `pg` 8, `pg-mem` 3, `unpdf` 1
+- Node.js 22.23 (CI: Node 22; the portal now requires Node 22+, see below); `pg` 8, `pg-mem` 3, `unpdf` 1
 - PostgreSQL 16.15 (local, throwaway cluster; CI: `postgres:16` service)
 - OpenJDK 21.0.12, compiling with `--release 17`; Maven 3.9.11 (could not download dependencies)
 - Google Chrome (headless, Playwright) for the browser check
@@ -16,7 +16,7 @@ This record separates what was **run** from what is **left to CI**. The AI build
 
 ```text
 npm ci                         found 0 vulnerabilities
-npm test                       tests 55  pass 55  fail 0
+npm test                       tests 56  pass 56  fail 0
 npm run test:integration       tests 4   pass 4   fail 0   (TEST_DATABASE_URL -> PostgreSQL 16.15)
 npm run test:integration       tests 4   skipped 4         (without TEST_DATABASE_URL, as designed)
 npm run check                  Portal validation passed: 18 courses, 17 slots, 30 required files.
@@ -59,16 +59,16 @@ The stand-ins live outside the repository and are not part of the build.
 
 - `SlotbookCli --help` printed the new options and exit-status line. `--bogus` was rejected as an unknown option, and `--prerequisites nope.csv` as a missing file.
 
-## Java: left to CI
+## CI: first run on the pushed branch (PR #1)
 
-| What | Expected |
+[Run 41429007442](https://github.com/lazarsalt1441/CS5013-PROJECT/actions/runs/41429007442), 2 November 2026:
+
+| Job | Result |
 |---|---|
-| `mvn clean test` | `Tests run: 71, Failures: 0, Errors: 0`: v2's 52 plus 19 new |
-| JavaFX compilation | `ui/SlotbookApplication` unchanged; it uses `SlotbookService.run(Path)` and `SlotbookRun` accessors, whose signatures are unchanged |
-| CLI on `data/prerequisite-warnings` | Prints `Prerequisite warnings: 22`; `prerequisite_warnings.csv` equals `expected_warnings.csv` (the CI step diffs them) |
-| v2 demonstrations | Unchanged results; `data/feasible` objective 20 |
+| `test` (Java, Temurin 17) | **passed**: `Tests run: 71, Failures: 0, Errors: 0, Skipped: 0`. JavaFX compiled. The CLI printed `Prerequisite warnings: 22 (advisory; the solver input is unchanged)` and its CSV matched `expected_warnings.csv`. The man page linted and its rendering matched. All v2 demonstrations ran. |
+| `portal` (Node 20) | **failed**: 50/55. All 5 failures read a real PDF. |
 
-Update this section with the CI run link and result once the branch is pushed.
+The portal failure was an environment fault: `unpdf` requires Node 22 (`Iterator` is not defined on Node 20). It was reproduced locally on Node 20.20 and fixed by requiring Node 22 in `package.json` (which Vercel honours) and in CI. The same failure also exposed a masking bug: a library fault was reported to students as "could not be read as a PDF". That is now a logged 500, and a regression test covers it ([DEBUGGING.md §8](DEBUGGING.md#8-every-pdf-upload-failed-on-node-20-and-the-error-blamed-the-file)). The follow-up commit's CI run is linked from PR #1.
 
 ## Man page: run here
 

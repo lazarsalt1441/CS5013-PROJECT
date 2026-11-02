@@ -5,7 +5,7 @@ Every automated test in the repository is listed below. **New in v3** marks test
 | Suite | Command | Tests | Needs |
 |---|---|---|---|
 | Java engine | `mvn clean test` | 71 (47 methods, plus 10 parameterised cases and 14 generated scenarios) | JDK 17+, Maven |
-| Portal unit and contract | `cd portal && npm test` | 55 | Node 20+; no network, no database |
+| Portal unit and contract | `cd portal && npm test` | 56 | Node 22+ (unpdf requires it); no network, no database |
 | Portal integration | `cd portal && TEST_DATABASE_URL=... npm run test:integration` | 4 | A throwaway Postgres (CI uses `postgres:16`); all skip without the variable |
 | Portal static checks | `cd portal && npm run check` | 1 script, many assertions | Node |
 | Man page | `groff -man -ww -z man/slotbook.1` and a diff against `slotbook.1.txt` | 1 CI step | groff |
@@ -91,7 +91,7 @@ If either implementation changes the rule, a code or a message, one of the three
 
 Count: 47 `@Test` methods + 10 seeds + 14 scenarios = **71**.
 
-## Portal (`npm test`, 55 tests)
+## Portal (`npm test`, 56 tests)
 
 ### `tests/validation.test.mjs` (10, new in v3)
 
@@ -144,7 +144,7 @@ Each Vercel handler with a fake request and response.
 
 Retired: "Apps Script ContentService redirects are retrieved with a GET", since the Apps Script bridge no longer exists.
 
-### `tests/gradecard.test.mjs` (9, new in v3)
+### `tests/gradecard.test.mjs` (10, new in v3)
 
 Uses only synthetic cards from `tests/fixtures`.
 
@@ -157,6 +157,7 @@ Uses only synthetic cards from `tests/fixtures`.
 - text items on the same baseline become one row, left to right
 - the synthetic PDF grade card parses end to end
 - uploads that are not usable PDFs fail with a clear message
+- a PDF library fault is not reported to the student as a bad file *(regression for a CI failure on Node 20)*
 
 ### `tests/prerequisites.test.mjs` (10, new in v3)
 

@@ -19,7 +19,7 @@ Earlier versions: [docs_v2](../docs_v2/README.md), [docs_v1](../docs_v1/README.m
 | Completed courses | Not modelled | Parsed from the student's PDF grade card (U, W, I not completed); `admin` source reserved |
 | CLI options | 4 | 7 (`--prerequisites`, `--completed-courses`, `--no-prerequisite-check`); unknown options now an error |
 | Java tests (Maven) | 52 | 71 (19 new) |
-| Portal tests | 7 (mocked Apps Script) | 55 unit/contract (in-memory Postgres) + 4 integration (real Postgres 16) |
+| Portal tests | 7 (mocked Apps Script) | 56 unit/contract (in-memory Postgres) + 4 integration (real Postgres 16) |
 | Man page | none | [`man/slotbook.1`](../man/slotbook.1), rendered in [`slotbook.1.txt`](../man/slotbook.1.txt) |
 
 The solver input, model and objective are unchanged: prerequisite data is kept outside `TimetableProblem`, and a test checks that the solver receives identical input with and without it.
@@ -55,12 +55,12 @@ mvn exec:java -Dexec.args="--input data/prerequisite-warnings --output output/pr
 man ./man/slotbook.1
 ```
 
-Portal (Node 20+):
+Portal (Node 22+):
 
 ```bash
 cd portal
 npm install
-npm test                      # 55 tests, no network or database needed
+npm test                      # 56 tests, no network or database needed
 TEST_DATABASE_URL=postgres://... npm run test:integration   # 4 tests on a throwaway Postgres
 npm run check
 DATABASE_URL=postgres://... npm run db:migrate
