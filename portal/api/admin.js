@@ -1,12 +1,21 @@
 const { errorResponse, json, readBody, requireAdmin, requireMethod } = require("./_lib");
-const { buildExports } = require("./_exports");
+const { WARNING_HEADERS, buildExports } = require("./_exports");
+const { toCsv } = require("./_lib");
+const { warningsForSnapshot } = require("./_prerequisites");
 const store = require("./_store");
 const { validatePublication } = require("./_validation");
 
 const ACTIONS = {
   async snapshot() {
     const snapshot = await store.snapshot();
-    return { ok: true, ...snapshot, ...buildExports(snapshot) };
+    const prerequisiteWarnings = warningsForSnapshot(snapshot);
+    return {
+      ok: true,
+      ...snapshot,
+      ...buildExports(snapshot),
+      prerequisite_warnings: prerequisiteWarnings,
+      prerequisite_warnings_csv: toCsv(WARNING_HEADERS, prerequisiteWarnings)
+    };
   },
   async publish_results(payload) {
     const published = await store.publishResults(validatePublication(payload));

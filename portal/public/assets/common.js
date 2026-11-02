@@ -25,6 +25,25 @@ const SlotbookPortal = (() => {
     element.setAttribute("role", type === "error" ? "alert" : "status");
   }
 
+  /** Shows a message followed by a bulleted list (used for warnings). */
+  function showStatusList(element, message, items, type = "warning") {
+    element.innerHTML = `${escapeHtml(message)}<ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    element.className = `status visible ${type}`;
+    element.setAttribute("role", "status");
+  }
+
+  /** Reads a PDF as base64; the server checks the content again. */
+  function readPdfAsBase64(file, maxBytes = 3_000_000) {
+    if (file.size > maxBytes) return Promise.reject(new Error("The grade card must be smaller than 3 MB."));
+    if (file.type && file.type !== "application/pdf") return Promise.reject(new Error("The grade card must be a PDF file."));
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).replace(/^data:[^,]*,/, ""));
+      reader.onerror = () => reject(new Error("The grade card could not be read."));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function clearStatus(element) {
     element.textContent = "";
     element.className = "status";
@@ -91,5 +110,5 @@ const SlotbookPortal = (() => {
     return file.text();
   }
 
-  return { api, clearStatus, downloadText, escapeHtml, loadCatalog, parseCsv, readFile, showStatus };
+  return { api, clearStatus, downloadText, escapeHtml, loadCatalog, parseCsv, readFile, readPdfAsBase64, showStatus, showStatusList };
 })();

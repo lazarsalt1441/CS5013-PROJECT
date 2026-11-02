@@ -66,6 +66,8 @@
     submitButton.disabled = true;
     SlotbookPortal.showStatus(status, "Saving your ranked preferences…", "info");
     try {
+      const cardFile = document.querySelector("#grade-card").files[0];
+      const gradeCard = cardFile ? await SlotbookPortal.readPdfAsBase64(cardFile) : undefined;
       const result = await SlotbookPortal.api("/api/submit", {
         method: "POST",
         body: JSON.stringify({
@@ -74,11 +76,17 @@
             student_id: document.querySelector("#student-id").value,
             programme: document.querySelector("#programme").value,
             year: document.querySelector("#year").value,
-            preferences: selected.map(course_id => ({ course_id }))
+            preferences: selected.map(course_id => ({ course_id })),
+            grade_card: gradeCard
           }
         })
       });
-      SlotbookPortal.showStatus(status, `${result.message} ${result.rows_saved} ranked course rows are now ready for the model.`, "success");
+      const summary = `${result.message} ${result.rows_saved} ranked course rows are now ready for the model.`;
+      if (result.warnings && result.warnings.length) {
+        SlotbookPortal.showStatusList(status, `${summary} Please review:`, result.warnings.map(warning => warning.message));
+      } else {
+        SlotbookPortal.showStatus(status, summary, "success");
+      }
     } catch (error) {
       SlotbookPortal.showStatus(status, error.message, "error");
     } finally {

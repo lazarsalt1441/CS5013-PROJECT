@@ -102,3 +102,32 @@ This version intentionally has no student/faculty authentication, as selected fo
 ## Migrating from v2 (Google Sheets)
 
 v2 data is demonstration data, so v3 starts empty. To carry rows over, export the v2 admin CSVs before switching and resubmit them, or insert them into `student_preferences` / `instructor_preferences` after creating the matching `*_submissions` rows. The v2 Apps Script is in Git history (`portal/google-apps-script/Code.gs` before the P015 commits).
+
+## Prerequisite warnings (v3)
+
+Professors list prerequisites for their course on the professor form. Students may upload their PDF grade card on the student form. When a student ranks a course whose prerequisite is not on their grade card, the response, the admin dashboard and `prerequisite_warnings.csv` show a warning. **Warnings never block a submission and never change the solver input.**
+
+| Rule | Behaviour |
+|---|---|
+| Completed | Any grade except U, W and I (so S, A–E and P count). A retaken course counts if any attempt passed. |
+| No grade card on record | One `NO_COMPLETION_RECORD` warning per student, not one per prerequisite. |
+| Unreadable or non-PDF upload | `GRADE_CARD_UNREADABLE` warning; preferences still save. |
+| Card roll number differs from the student ID | `ROLL_NUMBER_MISMATCH` warning; the card is still used. |
+| Resubmission without a card | The previously parsed card is kept. |
+| Professor resubmits with an empty prerequisites field | That course's prerequisites are cleared. |
+
+What is stored: course code, grade and term per completed course (`completed_courses`). The PDF, course titles, the student's name and the roll number are not stored.
+
+**Trust:** a student-uploaded grade card is not verified. `api/_completions.js` is the extension point for an `admin` source (records from the academic section). The `completed_courses.source` column already accepts `'admin'` and the checker already reads every source, so adding it needs a new source entry and an admin upload action, with no schema change and no change to the student form. Select the source with `COMPLETION_SOURCE` (default `grade_card`).
+
+The admin dashboard also exports `prerequisites.csv` and `completed_courses.csv`, which the Java CLI reads to print the same warnings (`slotbook(1)`, `--prerequisites`).
+
+## Local development
+
+```bash
+npm install
+DATABASE_URL=postgres://localhost/slotbook npm run db:migrate
+DATABASE_URL=postgres://localhost/slotbook ADMIN_PASSWORD=dev npm run dev   # http://localhost:4173
+```
+
+`scripts/dev-server.mjs` serves `public/` and routes `/api/*` to the same handlers Vercel runs, using the `rewrites` in `vercel.json`.
