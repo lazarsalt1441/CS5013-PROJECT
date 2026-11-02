@@ -6,6 +6,8 @@
 // The Java PrerequisiteChecker applies the same rule and uses the same codes,
 // so the portal and the CLI report the same thing for the same data.
 
+const { isCompleted } = require("./_gradecard");
+
 const CODES = Object.freeze({
   MISSING: "MISSING_PREREQUISITE",
   NO_RECORD: "NO_COMPLETION_RECORD"
@@ -72,10 +74,13 @@ function warningsForSnapshot(snapshot) {
     if (!ranksByStudent.has(row.student_id)) ranksByStudent.set(row.student_id, []);
     ranksByStudent.get(row.student_id).push(row);
   }
+  // Any row is a record; only rows with a completing grade count as done.
+  // Grade-card parsing already drops U/W/I, but other sources (admin records,
+  // CSV imports) may include them.
   const completedByStudent = new Map();
   for (const row of snapshot.completions) {
     if (!completedByStudent.has(row.student_id)) completedByStudent.set(row.student_id, new Set());
-    completedByStudent.get(row.student_id).add(row.course_id);
+    if (isCompleted(row.grade)) completedByStudent.get(row.student_id).add(row.course_id);
   }
   const rows = [];
   for (const [studentId, ranked] of ranksByStudent) {
@@ -87,4 +92,4 @@ function warningsForSnapshot(snapshot) {
   return rows;
 }
 
-module.exports = { CODES, checkPrerequisites, warningsForSnapshot };
+module.exports = { CODES, checkPrerequisites, isCompleted, warningsForSnapshot };

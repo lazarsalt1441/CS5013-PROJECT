@@ -1,0 +1,20 @@
+course_id,title,semester_group,course_type,instructor,class_size,historical_slot,fixed_slot,allowed_slots,additional_slot,room
+EE1100,Basic Electrical Engineering,BT02_SERVICE,CORE,S Krishna,180,E,E,A|B|C|D|E|F|G,,CRC
+EE1101,Signals and Systems,BT02_EE,CORE,Pradeep K,190,E,,A|C|D|E|F|G,,CRC
+EE2002,Digital Systems,BT02_EE,CORE,Ananth Krishnan,210,B,B,A|B|C|D|E|F|G,,ESB 106
+EE3001,Solid State Devices,BT04_EE,CORE,Amitava B,210,C,C,A|B|C|D|E|F|G,P,ESB 106
+EE2004,Digital Signal Processing,BT04_EE,CORE,R K Ganti,210,D,,A|B|C|D|E|F|G,,ESB 106
+EE2019,Analog Systems and Lab,BT04_EE,CORE,Aniruddhan S,210,E,,A|B|C|D|E|F|G,T,ESB 127
+EE3005,Communication Systems,BT06_EE,ELECTIVE,Giridhar K,90,D,,A|B|C|D|E|F|G,,ESB 127
+EE4502,Optics for Engineers,BT06_EE,ELECTIVE,Shanti B,15,E,,A|B|C|D|E|F|G,R,Malaviya Hall
+EE5141,Wireless and Cellular Communication,MT02_EE1,ELECTIVE,David K,110,F,,A|B|C|D|E|F|G,,ESB 350
+EE3110,Probability Foundations,MT02_EE1,ELECTIVE,Mani A,55,B,,A|B|C|D|E|F|G,,ESB 350
+EE5175,Image Signal Processing,MT02_EE1,ELECTIVE,Rajagopalan A,60,B,,A|B|C|D|E|F|G,,ESB 128
+EE5112,Detection Theory,MT02_EE1,ELECTIVE,Arun Pachai,60,C,,A|B|C|D|E|F|G,,ESB 129
+EE6180,Advances in Artificial Intelligence,MT02_EE1,ELECTIVE,Pravin Nair,20,C,,A|B|C|D|E|F|G,,ESB 350
+EE5143,Information Theory,MT02_EE1,ELECTIVE,Srikrishna B,60,E,,A|B|C|D|E|F|G,,ESB 242
+EE5150,Communication Networks,MT02_EE1,ELECTIVE,Venkatesh R,75,G,,A|B|C|D|E|F|G,,ESB 128
+EE5178,Modern Computer Vision,MT02_EE1,ELECTIVE,Kaushik Mitra,90,G,,A|B|C|D|E|F|G,,ESB 127
+EE5320,Analog IC Design,MT02_EE6,ELECTIVE,Nagendra K,130,C,,A|B|C|D|E|F|G,,ESB 127
+EE6332,Modeling and Optimization in VLSI,MT02_EE6,ELECTIVE,Ramprasath S,55,S,,A|B|C|D|E|F|G,,ESB 128
+

@@ -94,6 +94,14 @@ jobs:
           mvn --batch-mode --no-transfer-progress exec:java
           -Dexec.args="--input data/feasible --output output/ci-demo-cpsat --solver cpsat"
 
+      - name: Run prerequisite-warnings demonstration (v3)
+        run: |
+          mvn --batch-mode --no-transfer-progress exec:java \
+            -Dexec.args="--input data/prerequisite-warnings --output output/ci-prereq --time-limit 3" | tee output/prereq.log
+          grep -q "Prerequisite warnings: 22" output/prereq.log
+          diff <(tail -n +2 output/ci-prereq/prerequisite_warnings.csv | tr -d '"') \
+               <(tail -n +2 data/prerequisite-warnings/expected_warnings.csv | tr -d '"')
+
       - name: Generate mid-evaluation showcase (UniTime)
         run: >-
           mvn --batch-mode --no-transfer-progress exec:java

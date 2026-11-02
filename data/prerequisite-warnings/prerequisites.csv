@@ -1,0 +1,5 @@
+course_id,prereq_course_id
+EE5141,EE3110
+EE5141,EE1101
+EE5112,EE3110
+EE5143,EE3110

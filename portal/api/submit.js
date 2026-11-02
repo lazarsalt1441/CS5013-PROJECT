@@ -1,6 +1,6 @@
 const { errorResponse, json, readBody, requireMethod } = require("./_lib");
 const { completionSource } = require("./_completions");
-const { checkPrerequisites } = require("./_prerequisites");
+const { checkPrerequisites, isCompleted } = require("./_prerequisites");
 const store = require("./_store");
 const { validateInstructor, validateStudent } = require("./_validation");
 
@@ -17,7 +17,7 @@ async function submitStudent(payload) {
   const prerequisiteWarnings = checkPrerequisites(
     student.preferences,
     await store.listPrerequisites(),
-    completions.map(row => row.course_id),
+    completions.filter(row => isCompleted(row.grade)).map(row => row.course_id),
     { hasRecord: completions.length > 0 }
   );
   const warnings = [...card.warnings, ...prerequisiteWarnings];
