@@ -20,7 +20,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
 | P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
-| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | In progress | see P015 commit list |
+| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (Java suite pending CI) | `4800f80`..current |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -650,8 +650,33 @@ Added at review:
 
 ### Prompt review
 
-(Filled in as the work is accepted; see Acceptance and verification.)
+- **Scope correction during planning.** "Enforce prereqs" became advisory warnings. "A proper database" became Postgres on Neon, chosen for its free tier, Vercel integration, constraints and transactions. Completed courses come from student-uploaded grade cards, with admin records as a built-in extension point rather than a feature.
+- **Storage.** The Apps Script bridge was replaced by a store module that is the only SQL in the portal. Every query is parameterised. Validation rules were ported unchanged and repeated as database constraints.
+- **Privacy.** The supplied grade card was used once, locally, to validate the parser on the real layout (43 of 43 rows). It was not committed and its contents are not quoted anywhere. Fixtures are generated and marked `SYNTHETIC`, and `npm run check` enforces the marker.
+- **Solver isolation.** Prerequisite data is kept outside `TimetableProblem`. A test with a recording solver proves the solver input is identical with and without it.
+- **Parity.** One golden file (`data/prerequisite-warnings/expected_warnings.csv`) is checked by the JUnit suite, the Node suite and a CI diff of the real CLI output.
+- **Rejected or revised AI output:**
+  - a fixture guard that grepped raw PDF bytes; it passed for the wrong reason, because the streams are compressed;
+  - a man-page draft that gave the wrong exit status for invalid input;
+  - a claim that the JavaFX app "compiles without edits", reworded because it could not be compiled here.
+- **Faults found by the new tests** (details in `docs_v3/DEBUGGING.md`):
+  - v2 never applied the results cache header;
+  - pg-mem silently ignores `ROLLBACK`, so rollback tests moved to real Postgres;
+  - the portal counted U/W rows as completed on non-grade-card paths;
+  - the Java loader defaulted a missing `source` column to `null`.
 
 ### Acceptance and verification
 
-(Filled in after the final test run.)
+Commits, each leaving the suites green: `4800f80` (this log entry), `84c766f` (Postgres), `aed79ec` (grade card and portal warnings), `30434ea` (Java warnings and parity fix), `419dbf7` (docs_v3 and man page), and this review.
+
+| Check | Where | Result |
+|---|---|---|
+| Portal unit and contract tests | local | 55/55 |
+| Portal integration tests | local PostgreSQL 16.15 | 4/4; all 4 skip without `TEST_DATABASE_URL` |
+| `npm run check` | local | pass; rejected a real grade card when one was copied in |
+| Browser end to end | local, headless Chrome | professor, student and admin flows as documented; no console errors |
+| New Java tests (19) | local, `javac --release 17` with JUnit stand-ins | 19/19 |
+| Full Maven suite (71) | CI | pending; Maven Central blocked in the build sandbox |
+| Man page | local groff | lint clean; committed rendering current |
+
+The full record is in `docs_v3/VERIFICATION.md`. Its "left to CI" section is to be updated with the first CI run on the pushed branch.
