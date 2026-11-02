@@ -58,6 +58,14 @@ for (const file of fs.readdirSync(path.join(root, "public")).filter(name => name
   references.forEach(reference => assert(exists(`public${reference}`), `${file} references missing asset ${reference}`));
   assert(/<title>[^<]+<\/title>/.test(html), `${file} needs a title.`);
   assert(/<meta name="viewport"/.test(html), `${file} needs a viewport meta tag.`);
+  assert(/<link rel="icon"/.test(html), `${file} needs a favicon link (browsers otherwise request /favicon.ico and log a 404).`);
+  // Browsers compile pattern="" with the RegExp "v" flag, which rejects
+  // some classes the older "u" flag accepted (e.g. an unescaped trailing
+  // "-"). An invalid pattern is silently ignored, disabling the check.
+  for (const [, pattern] of html.matchAll(/\spattern="([^"]*)"/g)) {
+    try { new RegExp(`^(?:${pattern})$`, "v"); }
+    catch (error) { failures.push(`${file}: pattern="${pattern}" is invalid in browsers (v flag): ${error.message}`); }
+  }
 }
 
 const envText = fs.readFileSync(path.join(root, ".env.example"), "utf8");

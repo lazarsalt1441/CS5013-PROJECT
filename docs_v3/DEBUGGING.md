@@ -74,3 +74,12 @@ The method is unchanged from [v2](../docs_v2/DEBUGGING.md): reproduce, observe, 
   - In `_gradecard.js`, translate only pdf.js file errors (`InvalidPDFException`, `PasswordException` and similar) into a student-facing message, and rethrow anything else, so it becomes a logged 500.
 - **Test:** "a PDF library fault is not reported to the student as a bad file" simulates a library failure and checks that it is not turned into a `GradeCardError`. The suite is now 56/56.
 - **Lesson:** A catch-all that converts every exception into a friendly message turns an outage into a misleading user error. Catch only the errors you mean to translate.
+
+### 9. The browser never checked the student ID (present since v2)
+
+- **Reproduce:** A full walkthrough in headless Chrome that also captured `console` errors, not only uncaught page errors.
+- **Observe:** "Pattern attribute value `[A-Za-z0-9_-]{3,30}` is not a valid regular expression … Invalid character in character class", plus a 404 on every page.
+- **Isolate:** Browsers compile `pattern=""` with the RegExp `v` flag, which rejects an unescaped `-` at the end of a class. An invalid pattern is ignored, so the in-form check never ran. The server-side validator still rejected bad IDs, so no bad data was stored. The 404 was `/favicon.ico`: no page declared an icon.
+- **Correct:** Escape the hyphen (`[A-Za-z0-9_\-]`) and add an inline SVG favicon to every page.
+- **Test:** `npm run check` now compiles every `pattern` attribute with the `v` flag and requires a favicon link. Run against the old page, it reports both faults. The walkthrough now shows no console errors, and the browser rejects `a!` while accepting `S-031_a`.
+- **Lesson:** The earlier smoke test listened only for uncaught exceptions; browser-reported problems arrive as console errors. Listen to both.
