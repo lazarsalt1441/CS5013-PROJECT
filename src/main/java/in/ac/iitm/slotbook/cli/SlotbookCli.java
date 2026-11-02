@@ -134,7 +134,7 @@ public final class SlotbookCli {
                 prerequisite_warnings.csv, but never block solving or change the exit
                 status. Grades U, W and I do not count as completed. See slotbook(1).
 
-                Exit status: 0 solved, 1 no feasible slotbook, 2 usage or input error.
+                Exit status: 0 exported, 1 invalid input or no slotbook, 2 usage or runtime error.
                 """);
     }
 }

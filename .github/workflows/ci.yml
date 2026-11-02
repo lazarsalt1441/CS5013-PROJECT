@@ -81,6 +81,12 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Lint the slotbook(1) man page and check the committed rendering
+        run: |
+          sudo apt-get install -y -q groff-base > /dev/null
+          groff -man -ww -z man/slotbook.1
+          groff -man -Tascii -rLL=80n -P-c -P-b -P-u man/slotbook.1 | cat -s | diff - man/slotbook.1.txt
+
       - name: Compile and run tests
         run: mvn --batch-mode --no-transfer-progress clean test
 
