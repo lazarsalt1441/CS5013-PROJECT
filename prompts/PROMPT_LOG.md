@@ -21,6 +21,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
 | P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
+| P016 | Document the tool's functionality and project progress | Accepted | this commit |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -680,3 +681,39 @@ Commits, each leaving the suites green: `ebb9c28` (this log entry), `7591cca` (P
 | Man page | local groff | lint clean; committed rendering current |
 
 The full record is in `docs_v3/VERIFICATION.md`. The first CI run on PR #1 passed the Java job (71/71) but failed 5 portal tests on Node 20. The cause was that `unpdf` requires Node 22, and a catch-all hid it behind a "bad PDF" message. Both were fixed in a follow-up commit; see `docs_v3/DEBUGGING.md` §8.
+
+## P016 - Functionality and progress document
+
+Written on 2 November 2026, after PR #1 (v3) was merged.
+
+### Original prompt
+
+> Apparently we need to commit a doc about the functionalities of the tool along with the progress in the project
+
+### CoSTAR prompt
+
+**Context:** v3 is merged on `main` (`8f2c000`). The repository has per-version docs (`docs_v1` to `docs_v3`), a prompt log P001–P016 and 49 commits from 10 October to 2 November 2026.
+
+**Objective:** One committed document that states what the tool does today, per user role and per component, and how the project reached this point: milestones, versions, test growth, open limitations and next steps.
+
+**Style:** A reference document with tables, linked to the detailed docs rather than repeating them.
+
+**Tone:** Factual. Status labels distinguish done, partial and planned work.
+
+**Audience:** CS5013 evaluators and teammates who need the current state in one place.
+
+**Response:** `FUNCTIONALITY_AND_PROGRESS.md` at the repository root, linked from the README and the docs_v3 index, committed with this entry.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not claim a feature works unless a test or a recorded run shows it; mark partial or untested work as such.
+- Take every date, commit and test count from Git, CI or the existing test plans; do not estimate.
+- Do not list deployment as done; the Neon database and Vercel settings are the team's to apply.
+- Do not duplicate the manual or test plan; link to them.
+
+### Acceptance
+
+- Every date and hash was checked against `git log origin/main`; test counts come from the v1, v2 and v3 test plans and CI run 41429470032.
+- All relative links resolve.
