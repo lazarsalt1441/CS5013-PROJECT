@@ -26,6 +26,8 @@ The solver input, model and objective are unchanged: prerequisite data is kept o
 
 ## Documents
 
+Start here for an overview: [FUNCTIONALITY_AND_PROGRESS.md](../FUNCTIONALITY_AND_PROGRESS.md), which covers the features by status and the project timeline.
+
 New or changed for v3:
 
 | Document | Contents |
