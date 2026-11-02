@@ -7,9 +7,17 @@
     "check": "node scripts/validate.mjs",
     "test": "node --test tests/*.test.mjs",
     "sync-catalog": "node scripts/sync-catalog.mjs",
-    "serve": "python3 -m http.server 4173 --directory public"
+    "serve": "python3 -m http.server 4173 --directory public",
+    "test:integration": "node --test tests/integration/*.test.mjs",
+    "db:migrate": "node scripts/migrate.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "pg-mem": "^3.0.14"
   }
 }

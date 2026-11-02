@@ -17,15 +17,15 @@ function exists(relativePath) {
 }
 
 const required = [
-  "vercel.json", ".env.example", "google-apps-script/Code.gs",
-  "api/_lib.js", "api/submit.js", "api/admin.js", "api/results.js", "api/solver.js", "api/health.js",
+  "vercel.json", ".env.example", "db/migrate.js", "db/migrations/001_initial_schema.sql",
+  "api/_lib.js", "api/_db.js", "api/_store.js", "api/_validation.js", "api/_exports.js", "api/submit.js", "api/admin.js", "api/results.js", "api/solver.js", "api/health.js",
   "public/index.html", "public/student.html", "public/professor.html", "public/admin.html", "public/results.html",
   "public/assets/styles.css", "public/assets/common.js", "public/assets/student.js", "public/assets/professor.js",
   "public/assets/admin.js", "public/assets/results.js", "public/data/catalog.json"
 ];
 required.forEach(file => assert(exists(file), `Missing required file: ${file}`));
 
-for (const directory of ["api", "public/assets", "scripts"]) {
+for (const directory of ["api", "db", "public/assets", "scripts"]) {
   for (const file of fs.readdirSync(path.join(root, directory)).filter(name => /\.(js|mjs)$/.test(name))) {
     try {
       execFileSync(process.execPath, ["--check", path.join(root, directory, file)], { stdio: "pipe" });
@@ -61,6 +61,17 @@ for (const file of fs.readdirSync(path.join(root, "public")).filter(name => name
 
 const envText = fs.readFileSync(path.join(root, ".env.example"), "utf8");
 assert(!/AIza[0-9A-Za-z_-]{20,}/.test(envText), ".env.example appears to contain a real Google API key.");
+assert(/DATABASE_URL=.*REPLACE/.test(envText), ".env.example must keep DATABASE_URL as a placeholder, never a real connection string.");
+assert(!/npg_[0-9A-Za-z]{8,}/.test(envText), ".env.example appears to contain a real Neon password.");
+
+// Migrations must be numbered without gaps so every environment applies them in the same order.
+const migrations = fs.readdirSync(path.join(root, "db/migrations")).filter(name => name.endsWith(".sql")).sort();
+migrations.forEach((name, index) => assert(name.startsWith(String(index + 1).padStart(3, "0") + "_"),
+  `Migration ${name} is out of sequence; expected prefix ${String(index + 1).padStart(3, "0")}_`));
+for (const name of migrations) {
+  const sql = fs.readFileSync(path.join(root, "db/migrations", name), "utf8");
+  assert(!/\bDROP\s+TABLE\b/i.test(sql) || /--\s*destructive: reviewed/i.test(sql), `${name} drops a table without a "-- destructive: reviewed" note.`);
+}
 
 if (failures.length) {
   console.error(`Portal validation failed (${failures.length}):`);

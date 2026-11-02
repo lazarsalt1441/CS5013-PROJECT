@@ -33,7 +33,7 @@
   }
 
   async function loadDashboard() {
-    SlotbookPortal.showStatus(adminStatus, "Loading Google Sheets snapshot…", "info");
+    SlotbookPortal.showStatus(adminStatus, "Loading database snapshot…", "info");
     try {
       const data = await adminCall("snapshot");
       renderSnapshot(data);

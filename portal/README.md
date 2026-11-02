@@ -1,38 +1,51 @@
 # IITM Slotbook Preference Portal
 
-This directory is a dependency-free Vercel application for collecting the two preference inputs consumed by the slotbook wrapper:
+This directory is a Vercel application for collecting the preference inputs consumed by the slotbook engine:
 
 - `student_preferences.csv`: `student_id,course_id,rank`
 - `instructor_preferences.csv`: `instructor,slot,penalty,reason`
 
-It provides public student and professor forms, an admin dashboard, exact CSV exports, an optional solver HTTP hook, and a public slotbook/explanation page. Submitted data is stored in Google Sheets through the included Apps Script bridge.
+It provides public student and professor forms, an admin dashboard, exact CSV exports, an optional solver HTTP hook, and a public slotbook/explanation page. From v3, submissions are stored in **Postgres** (hosted on [Neon](https://neon.tech)'s free tier), replacing v2's Google Sheets bridge.
 
 ## Architecture
 
 ```text
-browser forms -> Vercel /api functions -> Google Apps Script -> Google Sheet
+browser forms -> Vercel /api functions -> api/_validation.js -> api/_store.js -> Postgres (Neon)
                                       \-> optional Java solver API
 
-admin dashboard <- CSV/JSON export <- Google Sheet
-public results  <- published rows  <- admin upload or solver response
+admin dashboard <- CSV/JSON export <- api/_store.js snapshot
+public results  <- latest published_runs row
 ```
 
-Vercel's filesystem is ephemeral, so the application never writes submissions to local files in production.
+| Module | Responsibility |
+|---|---|
+| `api/_validation.js` | Pure input rules. No I/O, so every rule is unit tested directly. |
+| `api/_store.js` | The only module that runs SQL. Parameterised queries; one transaction per replacing write. |
+| `api/_db.js` | Lazily created connection pool from `DATABASE_URL`; tests swap it with `setPool()`. |
+| `api/_exports.js` | Builds the Java CSV files from a snapshot. |
+| `db/migrations/*.sql` | Numbered schema changes, applied once each by `db/migrate.js`. |
 
-## 1. Create the free Google Sheet backend
+Vercel's filesystem is ephemeral, so the application never writes submissions to local files.
 
-1. Create an empty Google Sheet.
-2. Open **Extensions -> Apps Script**.
-3. Replace `Code.gs` with `google-apps-script/Code.gs` from this directory.
-4. In **Project Settings -> Script properties**, add:
-   - `SPREADSHEET_ID`: the ID between `/d/` and `/edit` in the Sheet URL.
-   - `ADMIN_API_KEY`: a long random string.
-5. Run `setupSheets` once and approve the requested spreadsheet permission.
-6. Choose **Deploy -> New deployment -> Web app**.
-7. Execute as yourself and allow access to **Anyone**. The bridge itself restricts administrative actions with `ADMIN_API_KEY`.
-8. Copy the deployment URL ending in `/exec`.
+### Why Postgres on Neon
 
-The script creates `Students`, `Instructors`, `Slotbook`, and `Explanations` tabs. Re-submitting the same student or instructor replaces their previous rows atomically.
+- Relational rules the Sheet could not hold are now constraints: foreign keys tie preferences to a submission, `CHECK` keeps ranks in 1–10 and penalties in 0–100, and primary keys stop duplicate courses or slots.
+- Replacing a person's earlier submission runs in one transaction, instead of an Apps Script lock around a whole-sheet rewrite.
+- Neon is serverless Postgres with a free tier and an official Vercel integration; the code uses the standard `pg` driver, so any Postgres works.
+- Published runs are kept, not overwritten, so earlier slotbooks can be audited.
+
+## 1. Create the database
+
+1. Create a free project at <https://console.neon.tech> (or add the **Neon** integration from the Vercel Marketplace, which sets `DATABASE_URL` for you).
+2. From **Dashboard → Connect**, copy the **pooled** connection string (its host contains `-pooler`).
+3. Apply the schema once, from this directory:
+
+   ```bash
+   npm install
+   DATABASE_URL='postgresql://...-pooler...neon.tech/neondb?sslmode=require' npm run db:migrate
+   ```
+
+   Re-running is safe: applied migrations are recorded in `schema_migrations` and skipped.
 
 ## 2. Deploy on Vercel
 
@@ -40,17 +53,16 @@ The script creates `Students`, `Instructors`, `Slotbook`, and `Explanations` tab
 2. Set **Root Directory** to `portal`.
 3. Framework preset: **Other**. No build command is required; output directory is `public`.
 4. Add the variables from `.env.example`:
-   - `GOOGLE_APPS_SCRIPT_URL`
+   - `DATABASE_URL` (skip if the Neon integration added it)
    - `ADMIN_PASSWORD`
-   - `GOOGLE_APPS_SCRIPT_ADMIN_KEY`
    - optionally `SOLVER_API_URL` and `SOLVER_API_KEY`
-5. Deploy.
+5. Deploy, then open `/api/health` and check `database_configured` and `admin_configured` are `true`.
 
-Run `npm run check` before deployment. To preview only the static pages locally, run `npm run serve`; Vercel CLI is required to exercise the `/api` routes locally.
+Run `npm test` and `npm run check` before deployment. To preview only the static pages locally, run `npm run serve`; Vercel CLI (`vercel dev`) is required to exercise the `/api` routes locally.
 
 ## 3. Solver integration
 
-Without `SOLVER_API_URL`, all collection, dashboard, validation, CSV export, and manual publication features work. The admin can download both CSVs, run the existing Java CLI, then upload `generated_slotbook.csv` and `assignment_explanations.csv` to publish results.
+Without `SOLVER_API_URL`, all collection, dashboard, validation, CSV export, and manual publication features work. The admin can download the CSVs, run the existing Java CLI, then upload `generated_slotbook.csv` and `assignment_explanations.csv` to publish results.
 
 If `SOLVER_API_URL` is configured, **Generate slotbook** sends:
 
@@ -71,8 +83,22 @@ The endpoint should return:
 }
 ```
 
-The Vercel API immediately publishes those rows to Google Sheets. This boundary lets the current Maven application remain unchanged while a small HTTP wrapper can be deployed separately on a JVM host.
+The Vercel API immediately stores those rows as a new published run. A solver error is shown to the admin as a 502 with the solver's message.
+
+## 4. Tests
+
+| Command | What it runs | Needs |
+|---|---|---|
+| `npm test` | Validation, store and HTTP contract tests on an in-memory Postgres (pg-mem) | nothing |
+| `npm run test:integration` | Rollback, concurrency and constraint tests on real Postgres | `TEST_DATABASE_URL` (all tests skip without it) |
+| `npm run check` | Static checks: required files, JS syntax, JSON, asset links, CSV headers, migration numbering | nothing |
+
+The integration suite **drops and recreates the `public` schema**, so point `TEST_DATABASE_URL` at a throwaway database, never at Neon production. CI runs it against a `postgres:16` service container.
 
 ## Privacy and demo status
 
-This version intentionally has no student/faculty authentication, as selected for the demonstration. The UI prominently labels this limitation. Do not collect real institutional preferences until IITM login, consent, retention, and administrator access controls are added. The admin route is protected by a server-side password, but that is not a substitute for institutional identity management.
+This version intentionally has no student/faculty authentication, as selected for the demonstration. The UI prominently labels this limitation. Do not collect real institutional preferences until IITM login, consent, retention, and administrator access controls are added. The admin route is protected by a server-side password (compared in constant time), but that is not a substitute for institutional identity management.
+
+## Migrating from v2 (Google Sheets)
+
+v2 data is demonstration data, so v3 starts empty. To carry rows over, export the v2 admin CSVs before switching and resubmit them, or insert them into `student_preferences` / `instructor_preferences` after creating the matching `*_submissions` rows. The v2 Apps Script is in Git history (`portal/google-apps-script/Code.gs` before the P015 commits).

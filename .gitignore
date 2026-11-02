@@ -11,3 +11,4 @@ portal/.tmp-qa/
 portal/.vercel/
 portal/.env.local
 
+portal/node_modules/
