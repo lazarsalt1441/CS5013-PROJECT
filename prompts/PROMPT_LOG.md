@@ -20,7 +20,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
 | P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
-| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (Java suite pending CI) | `4800f80`..current |
+| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (Java suite pending CI) | `ebb9c28`..current |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -667,7 +667,7 @@ Added at review:
 
 ### Acceptance and verification
 
-Commits, each leaving the suites green: `4800f80` (this log entry), `84c766f` (Postgres), `aed79ec` (grade card and portal warnings), `30434ea` (Java warnings and parity fix), `419dbf7` (docs_v3 and man page), and this review.
+Commits, each leaving the suites green: `ebb9c28` (this log entry), `7591cca` (Postgres), `6bfd4a1` (grade card and portal warnings), `f528505` (Java warnings and parity fix), `9ee919b` (docs_v3 and man page), and this review.
 
 | Check | Where | Result |
 |---|---|---|
