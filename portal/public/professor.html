@@ -18,6 +18,10 @@
     <div class="notice"><strong>Demo mode:</strong> re-submitting the same instructor name replaces the earlier preference rows. No institutional authentication is enabled.</div>
     <form id="professor-form" class="form-card" novalidate>
       <div class="field" style="margin-bottom:20px"><label for="instructor">Instructor name or demo identifier</label><input id="instructor" maxlength="80" placeholder="Professor A" required></div>
+      <div class="form-grid" style="margin-bottom:20px">
+        <div class="field"><label for="course">Course you teach (optional)</label><select id="course"><option value="">Loading catalog…</option></select><span class="hint">Needed only if you list prerequisites.</span></div>
+        <div class="field"><label for="prerequisites">Prerequisites for this course</label><input id="prerequisites" maxlength="400" placeholder="EE1101, EE3110"><span class="hint">Course codes separated by commas or spaces. Students who have not completed them see a warning; they are not blocked. Leave empty to clear earlier prerequisites for this course.</span></div>
+      </div>
       <div class="field"><label>Lecture slots</label><span class="hint">Leave “Not specified” where you have no preference. Add a concrete reason for discouraged slots.</span><div id="preference-grid" class="preference-grid" style="margin-top:12px" aria-live="polite"></div></div>
       <div class="actions" style="margin-top:24px"><button id="professor-submit" class="button primary" type="submit">Save slot preferences</button><button id="professor-reset" class="button secondary" type="button">Reset</button></div>
       <div id="professor-status" class="status"></div>

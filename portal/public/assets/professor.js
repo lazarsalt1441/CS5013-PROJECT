@@ -3,6 +3,7 @@
   const grid = document.querySelector("#preference-grid");
   const submitButton = document.querySelector("#professor-submit");
   const status = document.querySelector("#professor-status");
+  const courseSelect = document.querySelector("#course");
   let slots = [];
 
   function render() {
@@ -36,6 +37,9 @@
       return [{ slot: row.dataset.slot, penalty: Number(value), reason: row.querySelector(".reason").value.trim() }];
     });
     if (!preferences.length) return SlotbookPortal.showStatus(status, "Specify at least one slot preference.", "error");
+    if (!courseSelect.value && document.querySelector("#prerequisites").value.trim()) {
+      return SlotbookPortal.showStatus(status, "Choose the course these prerequisites belong to.", "error");
+    }
     const discouragedWithoutReason = preferences.find(item => item.penalty >= 8 && !item.reason);
     if (discouragedWithoutReason) return SlotbookPortal.showStatus(status, `Add a reason for discouraged slot ${discouragedWithoutReason.slot}.`, "error");
     submitButton.disabled = true;
@@ -45,10 +49,18 @@
         method: "POST",
         body: JSON.stringify({
           type: "instructor",
-          payload: { instructor: document.querySelector("#instructor").value, preferences }
+          payload: {
+            instructor: document.querySelector("#instructor").value,
+            course_id: courseSelect.value,
+            // Sent only with a course: the server treats a missing field as "unchanged".
+            prerequisites: courseSelect.value ? document.querySelector("#prerequisites").value : undefined,
+            preferences
+          }
         })
       });
-      SlotbookPortal.showStatus(status, `${result.message} ${result.rows_saved} slot penalties are ready for export.`, "success");
+      const prerequisiteNote = result.prerequisites_saved === null || result.prerequisites_saved === undefined
+        ? "" : ` ${result.prerequisites_saved} prerequisite(s) recorded for ${courseSelect.value}.`;
+      SlotbookPortal.showStatus(status, `${result.message} ${result.rows_saved} slot penalties are ready for export.${prerequisiteNote}`, "success");
     } catch (error) {
       SlotbookPortal.showStatus(status, error.message, "error");
     } finally {
@@ -65,6 +77,9 @@
   SlotbookPortal.loadCatalog()
     .then(catalog => {
       slots = catalog.slots.filter(slot => slot.category === "LECTURE");
+      courseSelect.innerHTML = '<option value="">No specific course</option>' + catalog.courses
+        .map(course => `<option value="${SlotbookPortal.escapeHtml(course.course_id)}">${SlotbookPortal.escapeHtml(course.course_id)} · ${SlotbookPortal.escapeHtml(course.title)}</option>`)
+        .join("");
       render();
     })
     .catch(error => SlotbookPortal.showStatus(status, error.message, "error"));

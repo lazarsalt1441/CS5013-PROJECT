@@ -2,6 +2,7 @@ package in.ac.iitm.slotbook.io;
 
 import in.ac.iitm.slotbook.model.AssignmentExplanation;
 import in.ac.iitm.slotbook.model.Course;
+import in.ac.iitm.slotbook.model.PrerequisiteWarning;
 import in.ac.iitm.slotbook.service.SlotbookRun;
 
 import java.io.IOException;
@@ -18,6 +19,21 @@ public final class SlotbookExporter {
         Files.createDirectories(outputDirectory);
         exportAssignments(run, outputDirectory.resolve("generated_slotbook.csv"));
         exportExplanations(run, outputDirectory.resolve("assignment_explanations.csv"));
+        if (run.prerequisitesChecked()) {
+            exportPrerequisiteWarnings(run, outputDirectory.resolve("prerequisite_warnings.csv"));
+        }
+    }
+
+    /** Same columns as the portal's prerequisite_warnings.csv export. */
+    private void exportPrerequisiteWarnings(SlotbookRun run, Path path) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("student_id,code,course_id,prereq_course_id,message");
+        for (PrerequisiteWarning warning : run.prerequisiteWarnings()) {
+            lines.add(String.join(",",
+                    csv(warning.studentId()), csv(warning.code()), csv(warning.courseId()),
+                    csv(warning.prerequisiteCourseId()), csv(warning.message())));
+        }
+        Files.write(path, lines, StandardCharsets.UTF_8);
     }
 
     private void exportAssignments(SlotbookRun run, Path path) throws IOException {

@@ -1,0 +1,201 @@
+SLOTBOOK(1)                 IITM Explainable Slotbook                SLOTBOOK(1)
+
+NAME
+       slotbook  -  generate  and explain an IITM course slotbook, with advisory
+       prerequisite warnings
+
+SYNOPSIS
+       slotbook   --input   DIR   [--output   DIR]   [--solver    unitime|cpsat]
+       [--time-limit SECONDS]
+       [--prerequisites   FILE]   [--completed-courses   FILE]   [--no-prerequi-
+       site-check]
+
+       slotbook --help
+
+       From the repository, run it through Maven:
+
+              mvn exec:java  -Dexec.args="--input  data/feasible  --output  out-
+              put/demo"
+
+DESCRIPTION
+       slotbook  reads  course, slot, conflict and preference CSV files, assigns
+       one lecture slot to every course and explains each assignment.
+
+       Hard rules always hold: one slot per course from its allowed set (or  its
+       fixed  slot),  no  lecture  over the course's own lab, no overlap between
+       protected course pairs, no instructor teaching two overlapping  meetings,
+       and no two lectures in the same room at once.  Overlaps are computed from
+       real weekly meeting times, not slot letters.
+
+       Within  those  rules  the  solver  minimises three costs: instructor slot
+       penalties (1 when an instructor gave no preference for  a  slot),  2  for
+       moving  a course away from its historical slot, and student clashes (pair
+       weight x overlapping meetings x 3).
+
+       The default solver is UniTime's course timetabling engine  (cpsolver),  a
+       local-search heuristic that keeps improving until the time limit. The cp-
+       sat  solver  is the exact OR-Tools model from v1 and can prove optimality
+       on small inputs.
+
+       Explanations are deterministic and identical for both  solvers:  for  the
+       chosen  slot  they  list  the rules satisfied and the penalties paid; for
+       every other slot they say why it was rejected or give its estimated cost.
+       No language model is involved.
+
+   Prerequisite warnings (new in v3)
+       If prerequisite rules are supplied, each  student's  ranked  courses  are
+       checked  against  the  courses they have completed. A ranked course whose
+       prerequisite is not completed produces a warning.
+
+       Warnings are advisory: they are printed  and  exported,  but  they  never
+       block  solving, never change the exit status, and are never passed to the
+       solver. The slotbook is the same with or without them.
+
+       Grades U, W and I do not count as completed; every other grade  (S,  A-E,
+       P)  does.  A retaken course counts if any attempt completed it. A student
+       with no completion rows at all gets a single NO_COMPLETION_RECORD warning
+       rather than one warning per prerequisite.
+
+       The preference portal produces both files: professors  declare  prerequi-
+       sites, and students upload their grade card, which the portal parses into
+       completed_courses.csv.  Student-uploaded grade cards are not verified.
+
+OPTIONS
+       --input DIR
+              Required. Directory containing the five solver inputs listed under
+              FILES.  It may also hold the two optional prerequisite files.
+
+       --output DIR
+              Where to write the results (default: output).  Created if missing.
+
+       --solver unitime|cpsat
+              unitime  (default)  runs  UniTime  cpsolver;  cpsat  runs  the  v1
+              OR-Tools CP-SAT model.
+
+       --time-limit SECONDS
+              Positive search time limit (default 10). UniTime always  uses  the
+              whole limit; CP-SAT stops early once it proves optimality.
+
+       --prerequisites FILE
+              Prerequisite  rules,  overriding  DIR/prerequisites.csv.  The file
+              must exist.
+
+       --completed-courses FILE
+              Completed courses, overriding DIR/completed_courses.csv.  The file
+              must exist.
+
+       --no-prerequisite-check
+              Skip prerequisite warnings even when the files are present.  Noth-
+              ing about the solve changes.
+
+       --help Print usage and exit without solving.
+
+       Unknown  options  are  an error (exit status 2). In v2 they were silently
+       ignored.
+
+FILES
+   Required inputs (in DIR)
+       courses.csv
+              course_id,   title,   semester_group,   course_type,   instructor,
+              class_size, historical_slot, fixed_slot, allowed_slots (pipe-sepa-
+              rated), additional_slot, room
+
+       slots.csv
+              slot_id, days, start_times, lengths, category (LECTURE or LAB)
+
+       hard_conflicts.csv
+              course_1, course_2, reason
+
+       instructor_preferences.csv
+              instructor, slot, penalty (0 or more), reason
+
+       student_preferences.csv
+              student_id, course_id, rank
+
+   Optional inputs (v3)
+       prerequisites.csv
+              course_id, prereq_course_id
+
+       completed_courses.csv
+              student_id,  course_id,  grade,  and  optionally  term  and source
+              (grade_card by default; admin  is  reserved  for  academic-section
+              records)
+
+   Outputs (in the output directory)
+       generated_slotbook.csv
+              One row per course with its assigned slot.
+
+       assignment_explanations.csv
+              Reasons for each assignment and for every rejected alternative.
+
+       prerequisite_warnings.csv
+              Written  only  when  prerequisite rules were supplied: student_id,
+              code, course_id, prereq_course_id, message.  An empty file (header
+              only) means the check ran and found nothing.
+
+WARNING CODES
+       MISSING_PREREQUISITE
+              A ranked course lists a prerequisite  the  student  has  not  com-
+              pleted.
+
+       NO_COMPLETION_RECORD
+              The student ranked courses that have prerequisites but has no com-
+              pletion rows.  course_id lists those courses separated by |.
+
+       SELF_PREREQUISITE
+              A  rule  lists  a  course as its own prerequisite; the rule is ig-
+              nored.
+
+       The preference portal uses the same codes and messages. The shared golden
+       file data/prerequisite-warnings/expected_warnings.csv is checked by  both
+       test suites.
+
+EXIT STATUS
+       0      A  slotbook  was  found and exported. Prerequisite warnings do not
+              change this.
+
+       1      The input failed validation, or no complete slotbook was  produced
+              (the reasons are printed as diagnostics).
+
+       2      Usage  error (unknown option, missing or bad value, missing file),
+              unreadable CSV, or an unexpected runtime error.
+
+EXAMPLES
+       Solve the main fixture with UniTime:
+
+              mvn exec:java  -Dexec.args="--input  data/feasible  --output  out-
+              put/demo"
+
+       Use the exact CP-SAT solver with a 30-second limit:
+
+              mvn  exec:java  -Dexec.args="--input  data/feasible --solver cpsat
+              --time-limit 30"
+
+       Solve and report prerequisite warnings (22  warnings,  same  slotbook  as
+       data/feasible):
+
+              mvn   exec:java   -Dexec.args="--input  data/prerequisite-warnings
+              --output output/prereq"
+
+       Use files downloaded from the portal's admin page:
+
+              mvn exec:java -Dexec.args="--input  data/feasible  --prerequisites
+              ~/Downloads/prerequisites.csv --completed-courses ~/Downloads/com-
+              pleted_courses.csv"
+
+LIMITATIONS
+       UniTime  is  a  heuristic:  on  the  generated  test scenarios it matched
+       CP-SAT's proven optimum in 10 of 13 cases. Student and instructor data in
+       the repository are synthetic. Grade cards uploaded through the portal are
+       self-reported and unverified.  The  JavaFX  interface  exports  prerequi-
+       site_warnings.csv but does not yet display warnings on screen.
+
+SEE ALSO
+       MANUAL.md, docs_v3/README.md, portal/README.md (the preference portal and
+       its Postgres backend), prompts/PROMPT_LOG.md (entry P015 for v3).
+
+AUTHORS
+       CS5013 project team. AI-assisted changes are logged with their prompts in
+       prompts/PROMPT_LOG.md.
+
+slotbook 3.0                      November 2026                      SLOTBOOK(1)

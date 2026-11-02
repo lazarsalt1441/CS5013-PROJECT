@@ -269,6 +269,8 @@ input:focus, select:focus, textarea:focus {
 .status.success { color: var(--success); background: var(--success-soft); }
 .status.error { color: var(--danger); background: var(--danger-soft); }
 .status.info { color: var(--navy); background: var(--teal-soft); }
+.status.warning { color: #5c4206; background: #fff4d6; }
+.status ul { margin: 8px 0 0; padding-left: 20px; font-weight: 500; }
 
 .dashboard-toolbar { display: grid; grid-template-columns: minmax(240px, 1fr) auto; gap: 12px; align-items: end; margin-bottom: 20px; }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }

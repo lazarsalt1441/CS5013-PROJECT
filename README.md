@@ -1,8 +1,16 @@
-# IITM Slotbook (v2: UniTime wrapper)
+# IITM Slotbook (v3: Postgres portal, prerequisite warnings)
 
 A Java application that assigns IITM Electrical Engineering courses to institutional slots and produces evidence-backed explanations for every assignment. Version 2 hands the optimisation to [UniTime](https://www.unitime.org)'s course timetabling engine, [cpsolver](https://github.com/UniTime/cpsolver), and keeps the v1 CP-SAT model as an exact reference solver.
 
-Documentation: [docs_v2](docs_v2/README.md) describes this version; [docs_v1](docs_v1/README.md) keeps the original CP-SAT version.
+Documentation: [docs_v3](docs_v3/README.md) describes this version. [docs_v2](docs_v2/README.md) covers the UniTime wrapper and [docs_v1](docs_v1/README.md) the original CP-SAT version. Command reference: `man ./man/slotbook.1` ([text](man/slotbook.1.txt)).
+
+## What changed in v3
+
+- The preference portal stores data in **Postgres on Neon** instead of Google Sheets, with migrations, database constraints and transactions.
+- Professors declare **prerequisites**. Students upload their **PDF grade card** (U, W and I do not count as completed). The portal and the CLI both report **advisory warnings**, never enforcement, with identical codes checked by a shared golden file.
+- A `slotbook(1)` man page, a manual covering the CLI and portal options, and a [test plan](docs_v3/TEST_PLAN.md) listing all 71 Java and 60 portal tests.
+
+The solver, its model and its objective are unchanged from v2.
 
 ## What changed from v1
 
@@ -38,20 +46,22 @@ The system supports:
 - deterministic assignment explanations with rejected alternatives
 - JavaFX table view with solver selection, and CSV export
 - feasible and deliberately infeasible demonstration datasets
+- advisory prerequisite warnings from professor-declared rules and student grade cards (v3)
 
-See [MANUAL.md](MANUAL.md) for usage and [ARCHITECTURE.md](docs_v2/ARCHITECTURE.md) for the module flow.
+See [MANUAL.md](MANUAL.md) for usage and [ARCHITECTURE.md](docs_v3/ARCHITECTURE.md) for the module flow (engine internals: [v2](docs_v2/ARCHITECTURE.md)).
 
 ## Preference collection portal
 
-The [`portal/`](portal/README.md) directory contains a Vercel-ready web application that collects student course rankings and instructor slot penalties in Google Sheets, exports the exact CSV contracts used by this application, optionally invokes a deployed solver API, and publishes the generated slotbook with explanations.
+The [`portal/`](portal/README.md) directory contains a Vercel-ready web application. It collects student course rankings, grade cards, instructor slot penalties and prerequisites in Postgres; exports the exact CSV contracts used by this application; optionally invokes a deployed solver API; and publishes the generated slotbook with explanations.
 
 ```bash
 cd portal
+npm install
 npm test
 npm run check
 ```
 
-The demonstration portal intentionally has no student or instructor authentication. Its admin operations use server-side secrets, and its documentation explains the Google Apps Script and Vercel setup.
+The demonstration portal intentionally has no student or instructor authentication. Its admin operations use a server-side password, and its documentation explains the Neon and Vercel setup.
 
 ## Quick start
 
@@ -76,15 +86,16 @@ It contains 11 courses, 36 anonymous students and 144 ranked preferences. UniTim
 
 - [Prompt log](prompts/PROMPT_LOG.md): CoSTAR prompts, negative prompts, reviews, debugging evidence and acceptance checks.
 - [Prompt review checklist](prompts/PROMPT_REVIEW_CHECKLIST.md): the gate applied before accepting AI-generated changes.
-- [Manual](MANUAL.md): name, synopsis, options, inputs, outputs, examples and limitations.
-- [About](docs_v2/ABOUT.md): the problem, what "explainable" means and data provenance.
+- [Manual](MANUAL.md) and [`slotbook(1)`](man/slotbook.1.txt): name, synopsis, options, inputs, outputs, examples and limitations.
+- [v3 test plan](docs_v3/TEST_PLAN.md): every automated test and what it verifies.
+- [About](docs_v3/ABOUT.md): the problem, what "explainable" means and data provenance.
 - [Code walkthrough](docs_v2/CODE_WALKTHROUGH.md): the UniTime mapping, the time encoding and the objective equivalence.
-- [Test plan](docs_v2/TEST_PLAN.md): automated coverage, solver comparison and manual UI checks.
-- [Verification record](docs_v2/VERIFICATION.md): the results recorded for this version.
-- [Debugging practice](docs_v2/DEBUGGING.md): reproduce-observe-hypothesize-isolate-correct-test-regress-document.
+- [Solver comparison](docs_v2/TEST_PLAN.md#solver-comparison): UniTime vs CP-SAT on 14 generated scenarios.
+- [Verification record](docs_v3/VERIFICATION.md): what was run for v3, where, and the results ([v2](docs_v2/VERIFICATION.md)).
+- [Debugging practice](docs_v3/DEBUGGING.md): reproduce-observe-hypothesize-isolate-correct-test-regress-document.
 - [Two-minute script](docs_v2/MID_EVALUATION_SCRIPT.md): presentation-ready system explanation.
 - [Live-modification practice](docs_v2/LIVE_MODIFICATION_PRACTICE.md): small evaluator-style changes and the files they exercise.
-- [Principles and practices](docs_v2/PRINCIPLES_AND_PRACTICES.md): prompt engineering, debugging, version control and testing.
+- [Principles and practices](docs_v3/PRINCIPLES_AND_PRACTICES.md): prompt engineering, debugging, version control and testing.
 - [File structure](docs_v2/FILE_STRUCTURE.md): annotated repository tree.
 - [Mid-evaluation showcase](data/demo-showcase/README.md): synthetic inputs, a formatted evaluator workbook and solver-generated outputs.
 

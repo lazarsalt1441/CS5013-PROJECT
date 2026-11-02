@@ -17,8 +17,8 @@
     });
   }
 
-  function renderRows(target, rows, keys) {
-    target.innerHTML = rows.length ? rows.slice(0, 100).map(row => `<tr>${keys.map(key => `<td>${SlotbookPortal.escapeHtml(row[key])}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${keys.length}" class="empty">No submissions yet.</td></tr>`;
+  function renderRows(target, rows, keys, empty = "No submissions yet.") {
+    target.innerHTML = rows.length ? rows.slice(0, 100).map(row => `<tr>${keys.map(key => `<td>${SlotbookPortal.escapeHtml(row[key])}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${keys.length}" class="empty">${SlotbookPortal.escapeHtml(empty)}</td></tr>`;
   }
 
   function renderSnapshot(data) {
@@ -29,11 +29,15 @@
     document.querySelector("#instructor-rows").textContent = data.instructor_rows;
     renderRows(document.querySelector("#student-preview"), data.students || [], ["student_id", "course_id", "rank"]);
     renderRows(document.querySelector("#instructor-preview"), data.instructors || [], ["instructor", "slot", "penalty", "reason"]);
+    const warnings = data.prerequisite_warnings || [];
+    document.querySelector("#prerequisite-rules").textContent = (data.prerequisites || []).length;
+    document.querySelector("#warning-count").textContent = warnings.length;
+    renderRows(document.querySelector("#warning-preview"), warnings, ["student_id", "course_id", "prereq_course_id", "message"], "No prerequisite warnings.");
     dashboard.hidden = false;
   }
 
   async function loadDashboard() {
-    SlotbookPortal.showStatus(adminStatus, "Loading Google Sheets snapshot…", "info");
+    SlotbookPortal.showStatus(adminStatus, "Loading database snapshot…", "info");
     try {
       const data = await adminCall("snapshot");
       renderSnapshot(data);
@@ -56,6 +60,16 @@
     if (!snapshot) return;
     SlotbookPortal.downloadText("instructor_preferences.csv", snapshot.instructor_preferences_csv);
   });
+
+  for (const [button, file, key] of [
+    ["#download-prerequisites", "prerequisites.csv", "prerequisites_csv"],
+    ["#download-completions", "completed_courses.csv", "completed_courses_csv"],
+    ["#download-warnings", "prerequisite_warnings.csv", "prerequisite_warnings_csv"]
+  ]) {
+    document.querySelector(button).addEventListener("click", () => {
+      if (snapshot) SlotbookPortal.downloadText(file, snapshot[key]);
+    });
+  }
 
   document.querySelector("#run-solver").addEventListener("click", async event => {
     const button = event.currentTarget;
@@ -101,7 +115,7 @@
 
   document.querySelector("#clear-data").addEventListener("click", async event => {
     const status = document.querySelector("#clear-status");
-    if (!confirm("Clear all student, instructor, slotbook, and explanation rows? This cannot be undone.")) return;
+    if (!confirm("Clear all student, instructor, prerequisite, grade-card, slotbook, and explanation rows? This cannot be undone.")) return;
     event.currentTarget.disabled = true;
     try {
       const result = await adminCall("clear_demo_data");

@@ -1,4 +1,7 @@
-const { callSheets, errorResponse, json, readBody, requireAdmin, requireMethod, toCsv } = require("./_lib");
+const { errorResponse, httpError, json, readBody, requireAdmin, requireMethod } = require("./_lib");
+const { buildExports } = require("./_exports");
+const store = require("./_store");
+const { validatePublication } = require("./_validation");
 
 module.exports = async function handler(req, res) {
   if (!requireMethod(req, res, ["POST"])) return;
@@ -13,11 +16,9 @@ module.exports = async function handler(req, res) {
       });
     }
     const body = await readBody(req);
-    const snapshot = await callSheets({ action: "admin_snapshot" }, { admin: true });
     const payload = {
       solver: body.solver === "cpsat" ? "cpsat" : "unitime",
-      student_preferences_csv: toCsv(["student_id", "course_id", "rank"], snapshot.students || []),
-      instructor_preferences_csv: toCsv(["instructor", "slot", "penalty", "reason"], snapshot.instructors || [])
+      ...buildExports(await store.snapshot())
     };
     const response = await fetch(solverUrl, {
       method: "POST",
@@ -27,15 +28,14 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify(payload)
     });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || `Solver returned ${response.status}.`);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw httpError(502, result.error || `Solver returned ${response.status}.`);
     if (!Array.isArray(result.slotbook) || !Array.isArray(result.explanations)) {
-      throw new Error("Solver response must contain slotbook and explanations arrays.");
+      throw httpError(502, "Solver response must contain slotbook and explanations arrays.");
     }
-    await callSheets({
-      action: "admin_publish_results",
-      payload: { slotbook: result.slotbook, explanations: result.explanations, solver: payload.solver }
-    }, { admin: true });
+    await store.publishResults(validatePublication({
+      slotbook: result.slotbook, explanations: result.explanations, solver: payload.solver
+    }));
     return json(res, 200, { ok: true, ...result });
   } catch (error) {
     return errorResponse(res, error);

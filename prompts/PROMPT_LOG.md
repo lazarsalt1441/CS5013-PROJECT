@@ -20,6 +20,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P012 | Build a Vercel preference portal with a free Google Sheets backend | Accepted | current portal commit |
 | P013 | Build and verify a deliberately explainable showcase dataset | Accepted | `487a534`..`8269d7f` |
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
+| P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -593,3 +594,89 @@ Added at review:
 - The document distinguishes executed local Node checks from the last verified Java CI result.
 - The architecture includes collection, persistence, validation, both solvers, deterministic explanation, and publication.
 - The DOCX and PDF are rendered page by page before acceptance; the PDF must report exactly three pages.
+
+## P015 - v3: Postgres backend, grade-card prerequisite warnings, man page
+
+Written on 2 November 2026. The planning questions and answers are kept because they changed the scope.
+
+### Original prompts
+
+> hi, can you look at the whole project, and now change the backend from gogolre sheets to a proper database, take one based on what you would think is good let me know if you dont have access to th repo, also add featurr to be able to enforce prereqs, and also write proper unit tests and follow good software practices, log your prompts and also use good ai practices Params 1) docs done correctly - has all the tests Negative prompts Etc 2) code commit at regular intervals 3) Are the prompts logged 4) Use the learning in the course to buildWriting Man page About the tool Options of the tool ask me for questions and then start working
+
+Planning answers (multiple choice and free text):
+
+> Database: Postgres on Neon. Prerequisite completions: "lets make it such that the student uploads their grade card, with extention to get this info from admin(make sure we can extend to this, but not right now)". Enforce at: portal and Java.
+
+> ok do this, take sample, lets just say non u,w,i for now, lets say the prof will give prereq list, make it a warning and not a enforcement, make it a new version ig
+
+### CoSTAR prompt
+
+**Context:** The v2 repository has a Java UniTime/CP-SAT slotbook engine and a dependency-free Vercel portal whose storage is a Google Apps Script bridge over a Google Sheet (P012). The portal exports `student_preferences.csv` and `instructor_preferences.csv` for the Java CLI. There is no notion of prerequisites. A real IITM grade-card PDF was supplied as a format sample.
+
+**Objective:** Produce v3. (1) Replace the Sheets bridge with a relational Postgres database hosted on Neon, behind a storage interface, with schema migrations and tests that run without a network. (2) Let professors declare prerequisites for their course, let students upload their grade card, and warn (never block) when a ranked course has a prerequisite the grade card does not show as completed. Grades U, W and I do not count as completed. (3) Mirror the same warning in the Java CLI from optional CSV inputs. (4) Ship docs_v3, a `slotbook(1)` man page and an updated manual that lists every test.
+
+**Style:** Small, single-purpose modules; dependency injection for storage and completion sources; SQL with constraints instead of application-only checks; Node built-in test runner and JUnit 5 to match the existing suites.
+
+**Tone:** Engineering documentation that states limits plainly (self-uploaded grade cards are unverified).
+
+**Audience:** CS5013 evaluators checking prompt practice, tests, commits and documentation; future maintainers adding admin-provided records.
+
+**Response:** Commits at each working step, each referencing P015: prompt log, storage interface and Postgres store, migrations, grade-card parser, prerequisite checker, API and UI changes, Java loader/checker/CLI changes, tests, docs_v3, man page, CI.
+
+### Negative prompt / constraints
+
+Stated by the developer:
+
+- Do not enforce prerequisites: a missing prerequisite is a warning and the submission is still saved.
+- Do not count U, W or I grades as completed.
+- Do not build the admin-provided completion source yet, but do not make adding it require a schema or form change.
+- Do not overwrite the v2 documentation; this is a new version.
+
+Agreed during planning:
+
+- Do not keep Google Sheets as a runtime dependency.
+- Do not use a database without a free tier reachable from Vercel serverless functions.
+
+Added at review:
+
+- Do not commit the supplied grade card or any real student name or roll number; tests use a synthetic card in the same layout.
+- Do not store the uploaded PDF; store only the parsed course, grade and term rows.
+- Do not build SQL by string concatenation; every query is parameterised.
+- Do not let tests depend on a live database or the network.
+- Do not change the existing CSV schemas consumed by the Java loader; new inputs are new, optional files.
+- Do not let an unparseable grade card crash a submission; report it as a warning.
+- Do not claim the grade card is verified; the admin-records source is the future verified path.
+- Do not invent test counts in the docs; copy them from the test runs.
+
+### Prompt review
+
+- **Scope correction during planning.** "Enforce prereqs" became advisory warnings. "A proper database" became Postgres on Neon, chosen for its free tier, Vercel integration, constraints and transactions. Completed courses come from student-uploaded grade cards, with admin records as a built-in extension point rather than a feature.
+- **Storage.** The Apps Script bridge was replaced by a store module that is the only SQL in the portal. Every query is parameterised. Validation rules were ported unchanged and repeated as database constraints.
+- **Privacy.** The supplied grade card was used once, locally, to validate the parser on the real layout (43 of 43 rows). It was not committed and its contents are not quoted anywhere. Fixtures are generated and marked `SYNTHETIC`, and `npm run check` enforces the marker.
+- **Solver isolation.** Prerequisite data is kept outside `TimetableProblem`. A test with a recording solver proves the solver input is identical with and without it.
+- **Parity.** One golden file (`data/prerequisite-warnings/expected_warnings.csv`) is checked by the JUnit suite, the Node suite and a CI diff of the real CLI output.
+- **Rejected or revised AI output:**
+  - a fixture guard that grepped raw PDF bytes; it passed for the wrong reason, because the streams are compressed;
+  - a man-page draft that gave the wrong exit status for invalid input;
+  - a claim that the JavaFX app "compiles without edits", reworded because it could not be compiled here.
+- **Faults found by the new tests** (details in `docs_v3/DEBUGGING.md`):
+  - v2 never applied the results cache header;
+  - pg-mem silently ignores `ROLLBACK`, so rollback tests moved to real Postgres;
+  - the portal counted U/W rows as completed on non-grade-card paths;
+  - the Java loader defaulted a missing `source` column to `null`.
+
+### Acceptance and verification
+
+Commits, each leaving the suites green: `ebb9c28` (this log entry), `7591cca` (Postgres), `6bfd4a1` (grade card and portal warnings), `f528505` (Java warnings and parity fix), `9ee919b` (docs_v3 and man page), and this review.
+
+| Check | Where | Result |
+|---|---|---|
+| Portal unit and contract tests | local (Node 22); CI after the Node 22 fix | 56/56 |
+| Portal integration tests | local PostgreSQL 16.15 | 4/4; all 4 skip without `TEST_DATABASE_URL` |
+| `npm run check` | local | pass; rejected a real grade card when one was copied in |
+| Browser end to end | local, headless Chrome | professor, student and admin flows as documented; no console errors |
+| New Java tests (19) | local, `javac --release 17` with JUnit stand-ins | 19/19 |
+| Full Maven suite (71) | CI run 41429007442 | **71/71**; CLI demo printed 22 warnings and matched the golden file |
+| Man page | local groff | lint clean; committed rendering current |
+
+The full record is in `docs_v3/VERIFICATION.md`. The first CI run on PR #1 passed the Java job (71/71) but failed 5 portal tests on Node 20. The cause was that `unpdf` requires Node 22, and a catch-all hid it behind a "bad PDF" message. Both were fixed in a follow-up commit; see `docs_v3/DEBUGGING.md` §8.

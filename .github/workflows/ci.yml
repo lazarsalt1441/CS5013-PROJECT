@@ -12,18 +12,52 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
+    # Real Postgres for the integration suite; unit tests use pg-mem.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: slotbook
+          POSTGRES_PASSWORD: slotbook
+          POSTGRES_DB: slotbook_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U slotbook"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: portal/package-lock.json
 
-      - name: Run portal API contract tests
+      - name: Install portal dependencies
+        working-directory: portal
+        run: npm ci
+
+      - name: Run portal unit and API contract tests
         working-directory: portal
         run: npm test
+
+      - name: Run portal integration tests on Postgres 16
+        working-directory: portal
+        env:
+          TEST_DATABASE_URL: postgresql://slotbook:slotbook@localhost:5432/slotbook_test
+        run: npm run test:integration
+
+      - name: Apply migrations with the deployment script
+        working-directory: portal
+        env:
+          DATABASE_URL: postgresql://slotbook:slotbook@localhost:5432/slotbook_test
+        run: npm run db:migrate
 
       - name: Validate portal assets and CSV contracts
         working-directory: portal
@@ -47,6 +81,12 @@ jobs:
           java-version: "17"
           cache: maven
 
+      - name: Lint the slotbook(1) man page and check the committed rendering
+        run: |
+          sudo apt-get install -y -q groff-base > /dev/null
+          groff -man -ww -z man/slotbook.1
+          groff -man -Tascii -rLL=80n -P-c -P-b -P-u man/slotbook.1 | cat -s | diff - man/slotbook.1.txt
+
       - name: Compile and run tests
         run: mvn --batch-mode --no-transfer-progress clean test
 
@@ -59,6 +99,14 @@ jobs:
         run: >-
           mvn --batch-mode --no-transfer-progress exec:java
           -Dexec.args="--input data/feasible --output output/ci-demo-cpsat --solver cpsat"
+
+      - name: Run prerequisite-warnings demonstration (v3)
+        run: |
+          mvn --batch-mode --no-transfer-progress exec:java \
+            -Dexec.args="--input data/prerequisite-warnings --output output/ci-prereq --time-limit 3" | tee output/prereq.log
+          grep -q "Prerequisite warnings: 22" output/prereq.log
+          diff <(tail -n +2 output/ci-prereq/prerequisite_warnings.csv | tr -d '"') \
+               <(tail -n +2 data/prerequisite-warnings/expected_warnings.csv | tr -d '"')
 
       - name: Generate mid-evaluation showcase (UniTime)
         run: >-

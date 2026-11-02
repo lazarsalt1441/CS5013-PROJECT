@@ -1,0 +1,22 @@
+instructor,slot,penalty,reason
+Pradeep K,A,6,Early Monday teaching discouraged
+Pradeep K,E,0,Preferred historical pattern
+R K Ganti,D,0,Preferred historical pattern
+R K Ganti,F,5,Late-week pattern discouraged
+Aniruddhan S,E,0,Coordinates with laboratory slot T
+Aniruddhan S,A,4,Laboratory preparation conflict
+David K,F,0,Preferred historical pattern
+David K,A,5,External meeting conflict
+Mani A,B,0,Preferred historical pattern
+Mani A,G,4,Friday morning unavailable
+Rajagopalan A,B,0,Preferred historical pattern
+Rajagopalan A,E,3,Research meeting overlap
+Arun Pachai,C,0,Preferred historical pattern
+Pravin Nair,C,0,Preferred historical pattern
+Pravin Nair,G,4,Friday morning unavailable
+Srikrishna B,E,0,Preferred historical pattern
+Venkatesh R,G,0,Preferred historical pattern
+Kaushik Mitra,G,0,Preferred historical pattern
+Nagendra K,C,0,Preferred historical pattern
+Ramprasath S,G,1,Preferred over morning slots
+

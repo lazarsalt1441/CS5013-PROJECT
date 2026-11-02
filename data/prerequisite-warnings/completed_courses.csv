@@ -1,0 +1,7 @@
+student_id,course_id,grade,term,source
+S001,EE1101,A,02,grade_card
+S001,EE3110,B,05,grade_card
+S002,EE1101,S,02,grade_card
+S002,EE3110,U,05,grade_card
+S005,EE1101,A,02,grade_card
+S005,EE3110,W,05,grade_card
