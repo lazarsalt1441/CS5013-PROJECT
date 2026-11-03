@@ -4,9 +4,11 @@ Every automated test in the repository is listed below. **New in v3** marks test
 
 | Suite | Command | Tests | Needs |
 |---|---|---|---|
-| Java engine | `mvn clean test` | 71 (47 methods, plus 10 parameterised cases and 14 generated scenarios) | JDK 17+, Maven |
-| Portal unit and contract | `cd portal && npm test` | 56 | Node 22+ (unpdf requires it); no network, no database |
+| Java engine | `mvn clean test` | 75 (51 methods, plus 10 parameterised cases and 14 generated scenarios) | JDK 17+, Maven |
+| Portal unit and contract | `cd portal && npm test` | 57 | Node 22+ (unpdf requires it); no network, no database |
 | Portal integration | `cd portal && TEST_DATABASE_URL=... npm run test:integration` | 4 | A throwaway Postgres (CI uses `postgres:16`); all skip without the variable |
+| Portal stress | `cd portal && TEST_DATABASE_URL=... npm run test:stress` | 14 | Node 22+; the 5 Postgres tests need a throwaway database and skip without it |
+| CI stress step | `npm run test:stress` with the Postgres service | 14 | runs in the `portal` job |
 | Portal static checks | `cd portal && npm run check` | 1 script, many assertions | Node |
 | Man page | `groff -man -ww -z man/slotbook.1` and a diff against `slotbook.1.txt` | 1 CI step | groff |
 | CLI demonstrations | CI `test` job | 5 runs | Maven |
@@ -89,9 +91,18 @@ If either implementation changes the rule, a code or a message, one of the three
 | | `generatedScenariosKeepPlantedAssignmentFeasible` | Planted timetable stays feasible |
 | | `csvWriterRoundTripsThroughDatasetLoader` | Generated CSVs reload |
 
-Count: 47 `@Test` methods + 10 seeds + 14 scenarios = **71**.
+### Stress (`validation` package, new in P017)
 
-## Portal (`npm test`, 56 tests)
+| Class | Test | Verifies |
+|---|---|---|
+| `PrerequisiteCheckerStressTest` | `matchesAnIndependentOracleOnTwoHundredRandomProblems` | 200 seeded problems (self-prerequisites, duplicates, U/W/I, retakes, no-record students) equal a naive oracle |
+| | `resultDoesNotDependOnTheOrderOfRulesOrCompletions` | Shuffled rules and completions give identical warnings (30 seeds) |
+| | `fiftyThousandStudentsCompleteAndScaleLinearly` | 50,000 students; one 10x run costs under 5x ten small runs |
+| | `loadsAHundredThousandCompletionRows` | A 100,000-row `completed_courses.csv` loads exactly |
+
+Count: 51 `@Test` methods + 10 seeds + 14 scenarios = **75**.
+
+## Portal (`npm test`, 57 tests)
 
 ### `tests/validation.test.mjs` (10, new in v3)
 
@@ -144,7 +155,7 @@ Each Vercel handler with a fake request and response.
 
 Retired: "Apps Script ContentService redirects are retrieved with a GET", since the Apps Script bridge no longer exists.
 
-### `tests/gradecard.test.mjs` (10, new in v3)
+### `tests/gradecard.test.mjs` (11, new in v3)
 
 Uses only synthetic cards from `tests/fixtures`.
 
@@ -158,6 +169,7 @@ Uses only synthetic cards from `tests/fixtures`.
 - the synthetic PDF grade card parses end to end
 - uploads that are not usable PDFs fail with a clear message
 - a PDF library fault is not reported to the student as a bad file *(regression for a CI failure on Node 20)*
+- pdf.js file exceptions are file errors; plain JavaScript errors are not *(regression found by the stress suite)*
 
 ### `tests/prerequisites.test.mjs` (10, new in v3)
 
@@ -185,6 +197,31 @@ Real Postgres, covering what pg-mem cannot (it does not implement `ROLLBACK`). *
 - a failing write rolls back the whole student submission
 - concurrent resubmissions leave exactly one complete preference list
 - prerequisite replacement is atomic with the instructor submission
+
+## Portal stress (`npm run test:stress`, 14, new in P017)
+
+Seeded (default seed `20261104`; replay with `STRESS_SEED=<n>`). Each test checks an invariant or an oracle, never only "no exception". About 18 s locally.
+
+`tests/stress/fuzz.stress.mjs`, no database:
+- 5,000 random student payloads: a ValidationError, or output meeting every invariant (ID shape, ranks 1..n, unique courses)
+- 5,000 random instructor payloads: likewise (slots, penalty 0–100, control characters removed, no self-prerequisite)
+- 2,000 CSV round trips: server `toCsv` into the browser's own `parseCsv` (loaded from `public/assets/common.js`) with quotes, commas, CRLF and unicode
+- 300 corrupted grade-card PDFs (byte flips, truncation, appended junk): parsed, or rejected with a GradeCardError; never a server error or a hang
+
+`tests/stress/volume.stress.mjs`, no database:
+- warnings for 3,000 random students equal a naive independent oracle
+- warning computation, grade-card row building and CSV export scale linearly: one run on 10x input costs under 5x ten runs on the small input (equal work, after warm-up, fastest of five)
+- a 20,000-row grade card is rebuilt and parsed exactly
+- a 100,000-row CSV export has one line per row
+
+`tests/stress/postgres.stress.mjs`, real Postgres, through the HTTP handlers (pool of 20):
+- 300 different students submitting at once are all stored exactly
+- 60 simultaneous resubmissions by one student all succeed and leave exactly one complete list
+- 25 professors replacing one course's prerequisites at once all succeed, and the last writer wins
+- 400 mixed valid and invalid requests return only 200s and 400s
+- snapshots and public results read during heavy writes and publishes never show a half-written submission or a partial run
+
+Each stress test that found a fault was re-run against the old code to confirm it fails there ([DEBUGGING.md §10–12](DEBUGGING.md#10-a-corrupted-grade-card-caused-a-server-error)).
 
 ## Static checks (`npm run check`)
 
