@@ -22,6 +22,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P014 | Package the current system for the CS5013 mid-evaluation | Accepted | current documentation commit |
 | P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
+| P017 | Add stress tests for the portal and the prerequisite checker | In progress | see P017 |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -717,3 +718,39 @@ Added at review:
 
 - Every date and hash was checked against `git log origin/main`; test counts come from the v1, v2 and v3 test plans and CI run 41429470032.
 - All relative links resolve.
+
+## P017 - Stress tests
+
+Written on 4 November 2026.
+
+### Original prompt
+
+> can you put some stress test unit test please
+
+### CoSTAR prompt
+
+**Context:** v3 is on `main` with 71 Java tests, 56 portal unit/contract tests and 4 Postgres integration tests. None of them exercise load, volume or hostile input.
+
+**Objective:** Add stress tests that try to break the system under concurrency, volume and randomized input, and that fail loudly on wrong results rather than only on crashes.
+
+**Style:** Seeded and reproducible; every stress test checks results against an invariant or an independent oracle, not only "no exception".
+
+**Tone:** Engineering; report any fault found.
+
+**Audience:** Maintainers and CS5013 evaluators.
+
+**Response:** A portal stress suite (`npm run test:stress`) with a real-Postgres part; a Java stress test class; CI wiring; test-plan and prompt-log updates.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not make the default `npm test` slow or network-dependent; stress tests get their own script.
+- Do not use unseeded randomness; a failure must print the seed and be replayable.
+- Do not assert tight wall-clock limits that flake on shared CI runners; use generous bounds or scaling ratios.
+- Do not exceed the database's connection limit by accident; size pools explicitly.
+- Do not weaken production code to make a stress test pass.
+
+### Acceptance
+
+(Filled in after the runs.)
