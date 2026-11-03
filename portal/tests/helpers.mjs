@@ -2,7 +2,7 @@
 // with every migration applied, so tests never touch the network or share
 // state.
 import { createRequire } from "node:module";
-import { newDb } from "pg-mem";
+import { DataType, newDb } from "pg-mem";
 
 const require = createRequire(import.meta.url);
 export const db = require("../api/_db.js");
@@ -10,6 +10,11 @@ const { migrate } = require("../db/migrate.js");
 
 export async function freshDatabase() {
   const memory = newDb();
+  // pg-mem lacks Postgres's advisory locks. It executes one query at a time,
+  // so a no-op is faithful here; real locking is exercised against Postgres
+  // in tests/stress/postgres.stress.mjs.
+  memory.public.registerFunction({ name: "hashtext", args: [DataType.text], returns: DataType.integer, implementation: () => 0 });
+  memory.public.registerFunction({ name: "pg_advisory_xact_lock", args: [DataType.integer], returns: DataType.text, implementation: () => "" });
   const { Pool } = memory.adapters.createPg();
   const pool = new Pool();
   await migrate(pool);

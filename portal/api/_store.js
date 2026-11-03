@@ -69,6 +69,12 @@ async function saveInstructor(instructor) {
       );
     }
     if (Array.isArray(instructor.prerequisites) && instructor.course_id) {
+      // Two professors may replace the same course's list at once. Without a
+      // lock both delete, both insert, and the second commit hits the primary
+      // key (found by the stress suite: 17 of 25 concurrent writes failed).
+      // A transaction-scoped lock per course makes them take turns; the last
+      // writer wins and the lock is released at COMMIT or ROLLBACK.
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`prerequisites:${instructor.course_id}`]);
       await client.query("DELETE FROM prerequisites WHERE course_id = $1", [instructor.course_id]);
       for (const prerequisite of instructor.prerequisites) {
         await client.query(

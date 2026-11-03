@@ -10,7 +10,7 @@ permissions:
 jobs:
   portal:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     # Real Postgres for the integration suite; unit tests use pg-mem.
     services:
@@ -52,6 +52,13 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://slotbook:slotbook@localhost:5432/slotbook_test
         run: npm run test:integration
+
+      - name: Run portal stress tests (fuzzing, volume, Postgres concurrency)
+        working-directory: portal
+        timeout-minutes: 10
+        env:
+          TEST_DATABASE_URL: postgresql://slotbook:slotbook@localhost:5432/slotbook_test
+        run: npm run test:stress
 
       - name: Apply migrations with the deployment script
         working-directory: portal
