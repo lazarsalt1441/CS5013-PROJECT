@@ -765,4 +765,4 @@ Added at review:
 | Portal integration | local Postgres 16 | 4/4 |
 | Portal stress | local Postgres 16, seeds 20261104, 1, 2, 3, 7, 8 | 14/14; about 18 s |
 | Java new and stress tests | local `javac --release 17`, JUnit stand-ins | 23/23; the stress class takes about 4 s |
-| Full Maven suite (75) and CI stress step | CI on PR #4 | to be confirmed by the PR's run |
+| Full Maven suite and CI stress step | CI run 41704760988 on PR #4 | Maven 75/75; portal 57/57, integration 4/4, stress 14/14 (scaling 1.53x and 1.30x against a limit of 5) |
