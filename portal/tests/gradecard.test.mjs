@@ -96,3 +96,13 @@ test("a PDF library fault is not reported to the student as a bad file", async (
     unpdf.getDocumentProxy = original;
   }
 });
+
+test("pdf.js file exceptions are file errors; plain JavaScript errors are not", () => {
+  for (const name of ["InvalidPDFException", "UnknownErrorException", "MissingPDFException", "FormatError"]) {
+    const error = new Error("x"); error.name = name;
+    assert.equal(g.isPdfFileError(error), true, name);
+  }
+  for (const error of [new ReferenceError("Iterator is not defined"), new TypeError("x"), new Error("x"), null]) {
+    assert.equal(g.isPdfFileError(error), false, String(error && error.name));
+  }
+});

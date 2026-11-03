@@ -12,8 +12,17 @@
 
 const MAX_PDF_BYTES = 3_000_000;
 
-/** pdf.js error names that mean the uploaded file itself is malformed. */
-const PDF_FILE_ERRORS = new Set(["InvalidPDFException", "FormatError", "MissingPDFException", "UnexpectedResponseException"]);
+/**
+ * True when pdf.js rejected the file itself. pdf.js signals file problems with
+ * its own exception classes (InvalidPDFException, UnknownErrorException,
+ * FormatError, ...); a plain JavaScript error (ReferenceError, TypeError) means
+ * the library or the server is broken. The stress suite found that a list of
+ * known names missed some of them, so classification is by origin instead.
+ */
+function isPdfFileError(error) {
+  if (!error || typeof error.name !== "string") return false;
+  return /Exception$/.test(error.name) || error.name === "FormatError";
+}
 
 /** Grades that do not count as completing a course (agreed in P015). */
 const NOT_COMPLETED_GRADES = Object.freeze(["U", "W", "I"]);
@@ -107,29 +116,27 @@ function itemsToRows(items, tolerance = 2) {
 
 async function extractRows(bytes) {
   const { getDocumentProxy } = require("unpdf");
-  let pdf;
+  // Every step that reads the file is inside the try: a corrupt page can fail
+  // in getPage or getTextContent, not only when the document is opened.
   try {
-    pdf = await getDocumentProxy(new Uint8Array(bytes));
+    const pdf = await getDocumentProxy(new Uint8Array(bytes));
+    const rows = [];
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const { items } = await page.getTextContent();
+      rows.push(...itemsToRows(items));
+    }
+    return rows;
   } catch (error) {
     // Only problems with the uploaded file become a user-facing message.
     // Anything else (e.g. the PDF library failing to load on an unsupported
-    // Node version) is a server fault and must surface as a logged 500,
-    // not as "your PDF is bad".
+    // Node version) is a server fault and must surface as a logged 500.
     if (error && error.name === "PasswordException") {
       throw new GradeCardError("The grade card is password-protected; upload an unlocked copy.");
     }
-    if (error && PDF_FILE_ERRORS.has(error.name)) {
-      throw new GradeCardError("The grade card could not be read as a PDF.");
-    }
+    if (isPdfFileError(error)) throw new GradeCardError("The grade card could not be read as a PDF.");
     throw error;
   }
-  const rows = [];
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    const page = await pdf.getPage(pageNumber);
-    const { items } = await page.getTextContent();
-    rows.push(...itemsToRows(items));
-  }
-  return rows;
 }
 
 /** Decodes the base64 upload sent by the student form. */
@@ -157,6 +164,7 @@ module.exports = {
   NOT_COMPLETED_GRADES,
   decodeUpload,
   isCompleted,
+  isPdfFileError,
   itemsToRows,
   parseGradeCard,
   parseGradeCardRows
