@@ -99,17 +99,25 @@ function parseGradeCardRows(rows) {
   return { roll_number: rollNumber, attempts, completed, unreadable_rows: unreadable };
 }
 
-/** Groups PDF text items into rows (same baseline) of cells (left to right). */
+/**
+ * Groups PDF text items into rows (same baseline) of cells (left to right).
+ *
+ * Items are sorted top to bottom, so an item can only belong to the row being
+ * built: an earlier row's first item is higher, hence further away. One pass
+ * is enough. The previous version searched every row for every item, which
+ * the stress suite measured as quadratic (10x items -> ~100x time); a large
+ * crafted upload could have tied up a function for seconds.
+ */
 function itemsToRows(items, tolerance = 2) {
-  const rows = [];
   const cells = items
     .filter(item => item.str && item.str.trim())
     .map(item => ({ text: item.str.trim(), x: item.transform[4], y: item.transform[5] }))
     .sort((a, b) => b.y - a.y || a.x - b.x);
+  const rows = [];
+  let current = null;
   for (const cell of cells) {
-    const row = rows.find(candidate => Math.abs(candidate.y - cell.y) <= tolerance);
-    if (row) row.cells.push(cell);
-    else rows.push({ y: cell.y, cells: [cell] });
+    if (current && Math.abs(current.y - cell.y) <= tolerance) current.cells.push(cell);
+    else rows.push(current = { y: cell.y, cells: [cell] });
   }
   return rows.map(row => row.cells.sort((a, b) => a.x - b.x).map(cell => cell.text));
 }
