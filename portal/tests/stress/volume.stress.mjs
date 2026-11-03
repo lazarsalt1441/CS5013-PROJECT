@@ -66,28 +66,36 @@ test("prerequisite warnings for 3,000 random students equal an independent oracl
   assert.deepEqual(actual, expected);
 });
 
-/** Median of a few runs, so one slow GC pause does not decide the result. */
-function timeOf(fn, runs = 3) {
-  const times = [];
-  for (let i = 0; i < runs; i += 1) {
+/** Fastest of five runs after two warm-ups, in ms: strips JIT and GC noise. */
+function timeOf(fn) {
+  fn(); fn();
+  let best = Infinity;
+  for (let i = 0; i < 5; i += 1) {
     const start = performance.now();
     fn();
-    times.push(performance.now() - start);
+    best = Math.min(best, performance.now() - start);
   }
-  return times.sort((a, b) => a - b)[Math.floor(runs / 2)];
+  return best;
 }
 
-// Linear work grows ~10x for 10x input; quadratic grows ~100x. A limit of 30x
-// separates the two with plenty of headroom for noisy CI machines.
-const MAX_GROWTH_FOR_10X = 30;
+/**
+ * Cost of one run on 10x input, relative to the same total work done as ten
+ * runs on the small input. Linear code gives about 1 (a little more from
+ * cache effects, or log n from a sort); quadratic gives about 10. Comparing
+ * equal work keeps both timings long, so a busy CI runner cannot decide it.
+ */
+function growth(fn, small, large) {
+  return timeOf(() => fn(large)) / timeOf(() => { for (let i = 0; i < 10; i += 1) fn(small); });
+}
 
-test("warning computation scales linearly: 10x students costs well under 30x time", () => {
+const MAX_GROWTH = 5;
+
+test("warning computation scales linearly: one 10x run costs about ten small runs", () => {
   const small = snapshotOf(rng(SEED + 1), 2000, 150, 400);
   const large = snapshotOf(rng(SEED + 1), 20000, 150, 400);
-  warningsForSnapshot(small);
-  const ratio = timeOf(() => warningsForSnapshot(large)) / timeOf(() => warningsForSnapshot(small));
-  console.log(`# warnings: 10x students -> ${ratio.toFixed(1)}x time`);
-  assert.ok(ratio < MAX_GROWTH_FOR_10X, `growth ${ratio.toFixed(1)}x suggests a quadratic step`);
+  const ratio = growth(warningsForSnapshot, small, large);
+  console.log(`# warnings: 10x students -> ${ratio.toFixed(2)}x the equal small work`);
+  assert.ok(ratio < MAX_GROWTH, `growth ${ratio.toFixed(2)}x suggests a quadratic step`);
 });
 
 /** PDF text items for a grade card with `rows` course rows, shuffled like a real content stream. */
@@ -102,14 +110,13 @@ function textItems(r, rows) {
   return r.shuffle(items);
 }
 
-test("grade-card row building scales linearly: 10x text items costs well under 30x time", () => {
+test("grade-card row building scales linearly: one 10x run costs about ten small runs", () => {
   const r = rng(SEED + 2);
   const small = textItems(r, 2000);
   const large = textItems(r, 20000);
-  g.itemsToRows(small);
-  const ratio = timeOf(() => g.itemsToRows(large)) / timeOf(() => g.itemsToRows(small));
-  console.log(`# itemsToRows: 10x items -> ${ratio.toFixed(1)}x time`);
-  assert.ok(ratio < MAX_GROWTH_FOR_10X, `growth ${ratio.toFixed(1)}x suggests a quadratic step`);
+  const ratio = growth(items => g.itemsToRows(items), small, large);
+  console.log(`# itemsToRows: 10x items -> ${ratio.toFixed(2)}x the equal small work`);
+  assert.ok(ratio < MAX_GROWTH, `growth ${ratio.toFixed(2)}x suggests a quadratic step`);
 });
 
 test("a 20,000-row grade card is rebuilt and parsed exactly", () => {
@@ -128,7 +135,9 @@ test("CSV export of 100,000 rows has one line per row and stays linear", () => {
   const make = n => Array.from({ length: n }, (_, i) => ({ student_id: `S${i}`, course_id: i % 7 ? "EE1101" : 'EE "x", y', rank: (i % 10) + 1 }));
   const csv = toCsv(headers, make(100_000));
   assert.equal(csv.split("\n").length - 1, 100_001);
-  const ratio = timeOf(() => toCsv(headers, make(100_000))) / timeOf(() => toCsv(headers, make(10_000)));
-  console.log(`# toCsv: 10x rows -> ${ratio.toFixed(1)}x time`);
-  assert.ok(ratio < MAX_GROWTH_FOR_10X);
+  const small = make(10_000);
+  const large = make(100_000);
+  const ratio = growth(rows => toCsv(headers, rows), small, large);
+  console.log(`# toCsv: 10x rows -> ${ratio.toFixed(2)}x the equal small work`);
+  assert.ok(ratio < MAX_GROWTH, `growth ${ratio.toFixed(2)}x suggests a quadratic step`);
 });
