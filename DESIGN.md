@@ -3,9 +3,10 @@
 | | |
 |---|---|
 | **Course** | CS5013, project |
-| **Status** | Approved design, followed through v1–v3 |
-| **Authors** | Project team |
+| **Authors** | Nishanth S (EE23B049), Sparsh Gupta (EE23B117) |
 
+> A three-page version, typeset in LaTeX, is in [`docs_design/design.pdf`](docs_design/design.pdf) ([source](docs_design/design.tex)).
+>
 > **Note on this document.** This document was written up on 5 November 2026, reconstructed from the project's prompt log (P001–P017), its commits and its per-version docs. It sets out the design decisions the team made between 10 October and 4 November 2026, in the form of the upfront design they amount to. It uses planning voice ("we will"). The decision log in §13 dates each decision to the prompt where it was actually made, and the appendix maps each requirement to the code and tests that satisfy it.
 
 ---
