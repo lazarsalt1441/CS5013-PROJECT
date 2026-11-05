@@ -100,8 +100,9 @@ These are out of scope for this course project. Each may become a goal later.
 ### 6.1 Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Portal [Web portal - Vercel]
+      direction LR
       F[Student, instructor and admin forms] --> API[API handlers]
       API --> V[Validation]
       API --> GC[Grade-card parser]
@@ -112,6 +113,7 @@ flowchart LR
     end
     EXP -->|5 CSVs + prerequisite CSVs| L
     subgraph Engine [Engine - Java]
+      direction LR
       L[Loader] --> VAL[Validator] --> S{Solver interface}
       S --> U[UniTime cpsolver]
       S --> C[CP-SAT reference]
