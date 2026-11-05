@@ -4,7 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{charter}
 \usepackage[scaled=0.86]{helvet}
-\usepackage[a4paper,margin=17mm,top=15mm,bottom=17mm]{geometry}
+\usepackage[a4paper,margin=16mm,top=14mm,bottom=16mm]{geometry}
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{xcolor}
@@ -20,14 +20,16 @@
 \definecolor{soft}{HTML}{EEF3F7}
 
 \titleformat{\section}{\sffamily\bfseries\large\color{ink}}{\thesection}{0.6em}{}
-\titlespacing*{\section}{0pt}{8pt}{3pt}
+\titlespacing*{\section}{0pt}{7pt}{3pt}
 \titleformat{\subsection}{\sffamily\bfseries\color{ink}}{\thesubsection}{0.5em}{}
-\titlespacing*{\subsection}{0pt}{5pt}{1.5pt}
+\titlespacing*{\subsection}{0pt}{4pt}{1.5pt}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{3.2pt}
-\setlist{nosep,leftmargin=13pt,topsep=1pt}
+\setlength{\parskip}{3pt}
+\setlist{nosep,leftmargin=12pt,topsep=1pt}
 \captionsetup{font={small,sf},labelfont=bf,skip=3pt}
-\renewcommand{\arraystretch}{1.12}
+\renewcommand{\arraystretch}{1.1}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 \newcommand{\code}[1]{\texttt{\small #1}}
 
@@ -39,31 +41,15 @@
 {\normalsize CS5013 course project \quad\textbullet\quad Nishanth S (EE23B049) and Sparsh Gupta (EE23B117)\par}
 }
 \vspace{-1pt}
-{\footnotesize\color{black!60} We wrote this up in November 2026 from our October design notes, the prompt log (P001--P017) and the commit history. It records the plan we worked from, so it is written in the future tense.\par}
+{\footnotesize\color{black!60} Written up in November 2026 from our October design notes, the prompt log (P001--P017) and the commit history. It records the plan we started from, so it is in the future tense, and \S4 shows how that plan changed.\par}
 \vspace{2pt}
 \rule{\linewidth}{0.5pt}
 
-\section{The problem}
+Every semester our department gives each course a lecture slot on the institute timetable grid, mostly by hand-editing last year's slotbook. Nobody can say afterwards why a course got its slot, or what a clash would cost to fix. We will build a tool that produces the slotbook from the rules and preferences directly, never breaks a hard rule, keeps a documented penalty low, and explains every assignment. Alongside it, a small web portal will collect the inputs. We are deliberately leaving some things out: no language model decides or explains anything, rooms are not allocated, the demo portal has no login, and all data in the repository is synthetic.
 
-Every semester our department has to give each course a lecture slot on the institute timetable grid. In practice someone starts from last year's slotbook and edits it by hand. The reasons behind each choice, like a professor who can't teach on Monday mornings or two core courses that third-years take together, live in people's heads and in old emails. When a slot changes, nobody can say why. When two courses clash, nobody can say what it would cost to move one of them.
+\section{Architecture}
 
-We want a tool that builds the slotbook from the rules and preferences directly, and can explain every decision it makes. Three things shape the design. First, it really is a constraint problem: some rules can never be broken (a course must not clash with its own lab), while others are wishes with a cost (an instructor's preferred slots, keeping last year's slot, fewer student clashes). Second, people will only trust a timetable they can understand, even an optimal one. Third, most of the inputs, especially student course choices, have to be collected before anything can be solved.
-
-\section{Goals and non-goals}
-
-By the end of the course the tool should produce a complete slotbook that never breaks a hard rule and keeps a documented penalty as low as it can. Every assignment should come with an explanation of why the course got that slot and why it didn't get each of the others. Running it twice on the same input should give the same answer. We also want a small web portal where students rank courses and instructors state their preferences, so the inputs don't have to be typed up by hand. Later on, we want to warn students who pick a course without having done its prerequisites.
-
-There are some things we are deliberately not doing. No language model will decide or explain a slot; every reason must come from the constraints themselves. We won't allocate rooms, since each course keeps the room it has. The demo portal will have no login, and we'll say so on every page. Prerequisites will produce warnings, not rejections, because departments do waive them and a self-uploaded grade card proves nothing. All student and instructor data in the repository will be synthetic.
-
-\section{Requirements}
-
-The engine reads five CSV files: courses, slots, hard conflicts, instructor preferences and student preferences. It validates them before doing anything else. Every problem is reported with a specific code such as \code{FIXED\_CONFLICT} or \code{UNKNOWN\_SLOT}, and invalid input is never solved. Each course then gets exactly one slot from its allowed set, or its fixed slot if it has one, subject to four hard rules: no lecture over the course's own lab, no overlap between protected pairs of courses, no instructor teaching two overlapping meetings, and no two lectures in the same room at the same time. Overlaps are worked out from actual meeting times on the official IITM grid, because slots with different letters can still overlap.
-
-The outputs are \code{generated\_slotbook.csv} and \code{assignment\_explanations.csv}, available from a command-line tool and a small JavaFX viewer. The portal exports data in exactly the engine's CSV format, so the two halves meet at plain files.
-
-Beyond features, we care about a few properties. Explanations must be derivable from the model alone, so they are the same whichever solver ran. Hard rules are checked by an independent checker rather than trusted from the solver. Anything stored by the portal must already satisfy the engine's input rules, and simultaneous submissions must neither fail nor corrupt data. We keep personal data to a minimum and run everything on free tiers.
-
-\section{Design}
+The system has two halves that meet only at plain CSV files (Figure~\ref{fig:arch}). The \textbf{engine} is a Java 17 program, run from a command line or a small JavaFX viewer. The \textbf{portal} is a set of web pages with serverless functions on Vercel. Keeping the boundary at files means either half can be used, tested or replaced on its own, and a timetabler can always open the files in a spreadsheet.
 
 \begin{figure}[h]
 \centering
@@ -73,18 +59,16 @@ Beyond features, we care about a few properties. Explanations must be derivable 
   box/.style={draw=ink!70, fill=white, rounded corners=1.5pt, inner sep=2.6pt, align=center, minimum height=5.2mm},
   arr/.style={-{Stealth[length=1.6mm]}, draw=black!65},
   grp/.style={draw=ink!35, fill=soft, rounded corners=3pt, inner sep=4pt}]
-  % Portal
-  \node[box] (forms) {Student, instructor\\and admin forms};
+  \node[box] (forms) {Student, instructor\\and admin pages};
   \node[box, right=of forms] (api) {API handlers};
   \node[box, above right=0.4mm and 4.2mm of api] (val) {Validation};
   \node[box, below right=0.4mm and 4.2mm of api] (gc) {Grade-card parser};
   \node[box, right=19mm of api] (store) {Store (only SQL)};
-  \node[box, right=of store] (db) {Postgres};
+  \node[box, right=of store] (db) {Database};
   \node[box, below=of db] (exp) {CSV exports};
   \draw[arr] (forms) -- (api); \draw[arr] (api) -- (val); \draw[arr] (api) -- (gc);
   \draw[arr] (val) -- (store); \draw[arr] (gc) -- (store); \draw[arr] (store) -- (db);
   \draw[arr] (store) |- (exp);
-  % Engine
   \node[box, right=11mm of db] (load) {Loader};
   \node[box, right=of load] (vj) {Validator};
   \node[box, right=of vj, yshift=3.4mm] (uni) {UniTime cpsolver};
@@ -101,75 +85,101 @@ Beyond features, we care about a few properties. Explanations must be derivable 
     \node[grp, fit=(load)(uni)(cps)(out)(pc), label={[font=\sffamily\scriptsize\bfseries, text=ink]above:Engine (Java)}] {};
   \end{scope}
 \end{tikzpicture}}
-\caption{How the pieces fit. The only link between portal and engine is a set of CSV files.}
+\caption{Architecture. Data flows left to right; the dashed arrow is the only link between the two halves.}
+\label{fig:arch}
 \end{figure}
 
-\vspace{-6pt}
-\subsection{Engine}
-Data flows one way: load, validate, solve, explain, export. The Java packages follow the same direction. The \code{model} package holds immutable records and depends on nothing, while \code{io}, \code{validation}, \code{solver} and \code{explain} depend only on \code{model}. The CLI and the viewer share one service class, so neither contains solver logic.
+\vspace{-5pt}
+\textbf{Engine.} Data flows one way: load, validate, solve, explain, export. Validation runs before any solving, and reports every problem with a specific code (e.g.\ \code{FIXED\_CONFLICT}). Invalid input is never solved. Clashes are computed from real meeting times on the official IITM grid, since slots with different letters can overlap. The hard rules are:
+\begin{itemize}
+\item one slot per course, taken from its allowed set (or its fixed slot);
+\item no lecture over the course's own lab;
+\item no overlap between protected pairs of courses;
+\item no instructor teaching two overlapping meetings;
+\item no two lectures in the same room at once.
+\end{itemize}
 
-\subsection{What we minimise}
-The penalty lives in a single \code{Objective} class that every solver and the explanation code share. A course costs the instructor's stated penalty for its slot (0 to 100, and 1 if they said nothing about that slot), plus 2 if it moves away from last year's slot. Each overlapping pair of courses costs 3 per overlapping meeting, multiplied by the pair's weight. That weight adds up, over every student taking both courses, $\max(1,\,4-\text{worse rank})$. A clash between two students' top choices therefore costs more than one involving a seventh choice. We kept the numbers small on purpose, so each term can be explained in one sentence.
+\textbf{One objective, shared.} A single \code{Objective} class defines the penalty, and every solver and the explanation code use it. A course costs the instructor's penalty for its slot (0--100, and 1 if they gave none), plus 2 if it moves away from last year's slot. Each overlapping pair costs 3 per overlapping meeting, times the pair's weight. The weight sums $\max(1,\,4-\text{worse rank})$ over the students taking both courses, so a clash between top choices hurts most.
 
-\subsection{Solvers}
-Both solvers sit behind a \code{TimetableSolver} interface. We will build an exact CP-SAT model first, using OR-Tools. It can prove optimality on small inputs, which gives us something to measure against. After that we will wrap UniTime's \emph{cpsolver} library, the search engine behind a real university timetabling system, and make it the default because it scales. We'll use the library rather than a UniTime server, and check that its score equals our own objective on every test input. CP-SAT stays in the project as a reference, so the heuristic's gap from the optimum is something we measure rather than assume.
+\textbf{Solvers behind an interface.} We will start with an exact CP-SAT model (OR-Tools), which can prove optimality on small inputs. We then plan to wrap UniTime's \emph{cpsolver} library, a local-search engine proven on real university timetables, and make it the default for scale. CP-SAT stays as the yardstick, so the heuristic's gap from the optimum is measured, not assumed.
 
-\subsection{Explanations}
-Explanations are computed after solving, from the problem and the final assignment. For the chosen slot we list the rules it satisfies and the penalties it pays. For every other slot we name the hard rule it would break, or give its estimated extra cost if only that course moved. That cost is labelled as an estimate, because it isn't a full re-solve.
+\textbf{Explanations from the model, not the solver.} After solving, we recompute everything from the problem and the final assignment. For the chosen slot we give the rules it satisfies and the penalties it pays. For every other slot we give the rule it breaks, or its estimated extra cost. Because the explanation code never looks inside the solver, explanations are identical whichever solver ran.
 
-\subsection{Portal and storage}
-The portal is a set of static pages with serverless API functions on Vercel. Requests pass through pure validation code into a store module, which is the only place that touches the database, and every query is parameterised. For the first demo we'll store submissions in a Google Sheet, because it's free and needs no setup. Once we need relational rules and several people writing at once, we'll move to Postgres on Neon. There, the same rules that live in our validation code are repeated as foreign keys and \code{CHECK} constraints. Replacing a submission happens in one transaction, and schema changes are numbered migrations.
+\textbf{Portal.} Requests pass through pure validation code into a store module, the only code that touches the database; every query is parameterised. Storage starts as a Google Sheet for the demo, and moves to Postgres once we need relational rules and concurrent writers. There, the validation rules are repeated as foreign keys and \code{CHECK} constraints, and each replacing write is one transaction. Prerequisites are advisory: a student's uploaded grade card is parsed (grades U, W and I don't count as completed), missing prerequisites produce warnings, and nothing is blocked or sent to the solver.
 
-\subsection{Prerequisites}
-Instructors list the prerequisites for their course, and students can upload the PDF grade card from the institute portal. We read course, grade and term from it and throw the file away. U, W and I don't count as completed, and a retaken course counts if any attempt passed. A missing prerequisite shows up as a warning when the student submits, on the admin page and in the CLI. It never blocks anything, and the solver never sees it. The portal (JavaScript) and the CLI (Java) implement the same rule, so both test suites check one shared file of expected warnings. Grade cards are only a first source of completions. Verified records from the academic section can be added later without changing the forms or the schema.
+\section{Module split}
 
-\section{Choices we considered}
+Each module has one job, and dependencies point one way: \code{model} depends on nothing, and everything else depends on \code{model}. The CLI and the viewer share \code{service}, so neither contains solver logic.
 
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{24mm}>{\raggedright\arraybackslash}p{44mm}X@{}}
+\begin{tabularx}{\linewidth}{@{}L{25mm}L{52mm}Y@{}}
 \toprule
-\textbf{Question} & \textbf{Options} & \textbf{What we picked and why}\\
+\textbf{Module} & \textbf{Main classes} & \textbf{Responsibility}\\
 \midrule
-How to solve & Greedy heuristic, MIP, CP-SAT, UniTime server, cpsolver library & CP-SAT first for provable answers, then cpsolver for scale. A home-made heuristic would be neither provable nor proven.\\
-How to explain & Language model, solver logs, recompute from the model & Recompute. It's deterministic and checkable, and works for both solvers. A language model can sound right and be wrong.\\
-Clash detection & Same slot letter, real meeting times & Real times, since some lab and lecture slots overlap without sharing a letter.\\
-Storage & Files on Vercel, Google Sheets, Neon Postgres, Supabase, SQLite & Sheets for the demo, then Neon. Vercel's disk doesn't persist, and Supabase brings features we don't need.\\
-Prerequisites & Enforce, warn, ignore & Warn, because records are self-reported and waivers happen.\\
+\multicolumn{3}{@{}l}{\sffamily\bfseries\small\color{ink} Engine (\code{in.ac.iitm.slotbook})}\\
+\code{model} & \code{Course}, \code{Slot}, \code{TimeGrid}, \code{TimetableProblem}, \code{TimetableSolution} & Immutable records; real meeting times; student pair weights\\
+\code{io} & \code{DatasetLoader}, \code{CsvSupport}, \code{SlotbookExporter}, \code{PrerequisiteLoader} & Read the five CSVs (plus optional prerequisite files) and write the exports\\
+\code{validation} & \code{InputValidator}, \code{PrerequisiteChecker} & Reject invalid input with coded issues; compute advisory prerequisite warnings\\
+\code{solver} & \code{TimetableSolver}, \code{Objective}, \code{OrToolsTimetableSolver}, \code{unitime/*} & The solver interface, the shared objective, CP-SAT, and the cpsolver mapping and search\\
+\code{explain} & \code{ExplanationBuilder} & Per-course reasons and classified alternatives\\
+\code{service}, \code{cli}, \code{ui} & \code{SlotbookService}, \code{SlotbookCli}, \code{SlotbookApplication} & One facade; command line and JavaFX on top of it\\
+\code{testing} (tests) & \code{ConstraintChecker}, \code{PenaltyCalculator}, \code{BruteForceSolver}, \code{ScenarioGenerator} & Independent oracles and generated scenarios, kept out of production code\\
+\midrule
+\multicolumn{3}{@{}l}{\sffamily\bfseries\small\color{ink} Portal (\code{portal/})}\\
+\code{api/*.js} & \code{submit}, \code{admin}, \code{results}, \code{solver}, \code{health} & HTTP handlers: parse, call domain and store, map errors to status codes\\
+domain & \code{\_validation}, \code{\_gradecard}, \code{\_prerequisites}, \code{\_completions} & Pure rules; the grade-card parser; the completion-source registry\\
+storage & \code{\_store}, \code{\_db}, \code{db/migrations} & All SQL; connection pool; numbered schema changes\\
+\code{public/} & Student, professor, admin and results pages & Forms and dashboards; no business rules in the browser\\
 \bottomrule
 \end{tabularx}
 
-\section{How we will test it}
+\section{Test plan}
 
-We test against oracles we write separately, not by asking the code whether it is right. Unit tests cover the parsers, every validation code, the objective and the explanations. For solver correctness, an independent constraint checker and penalty calculator check both solvers on fixed and randomly generated scenarios, and on small cases an exhaustive brute force confirms that CP-SAT really is optimal. Every scenario is solved by both solvers, and the gap is recorded. The portal gets contract tests against the engine's CSV headers, plus integration tests on a real Postgres for rollback and concurrency. Finally, stress tests throw seeded random input, corrupted PDFs and hundreds of simultaneous requests at it. These must never produce a server error or a half-written submission.
+We test against oracles written separately from the code under test, rather than asking the code whether it is right.
 
-We never assert one exact timetable when several are equally good. Every random test is seeded so a failure can be replayed, and every bug fix gets a test that we first watch fail on the old code. GitHub Actions runs everything on each push and pull request.
+\begin{tabularx}{\linewidth}{@{}L{25mm}Y L{52mm}@{}}
+\toprule
+\textbf{Level} & \textbf{What we test} & \textbf{Checked against}\\
+\midrule
+Unit & CSV parsing, every validation code, the objective, explanations, grade-card rows, the prerequisite rule & Hand-computed expected values\\
+Solver correctness & Both solvers on fixed fixtures and randomly generated scenarios & Independent constraint checker and penalty calculator\\
+Optimality & CP-SAT on small seeded problems & Exhaustive brute-force search\\
+Cross-solver & cpsolver against CP-SAT on every scenario & CP-SAT's proven optimum; gap recorded\\
+Contract & Portal CSV exports; portal against CLI prerequisite warnings & Engine's loader headers; one shared golden file\\
+Integration & Store on a real Postgres: rollback, concurrency, constraints & Database state afterwards\\
+Stress & Seeded random input, corrupted PDFs, large volumes, hundreds of simultaneous requests & Invariants (never a 500 or a half-written submission); naive re-implementations\\
+Manual & JavaFX viewer; portal pages in a browser, console errors included & A checklist\\
+\bottomrule
+\end{tabularx}
 
-\section{How we will work}
-
-Most of the code will be written with an AI assistant, so we've set ourselves rules. Every piece of work starts with an entry in \code{prompts/PROMPT\_LOG.md}, written before any code. It records the request as given, a structured restatement (CoSTAR), and a list of things the output must \emph{not} do, noting whether each came from us, from planning or from review. AI output counts as untrusted until the tests and checks pass, and we record what we rejected. Commits are small and pass the tests, larger changes go through a pull request, bugs are written up as we find them, and documentation is versioned alongside the code.
-
-\section{Plan and risks}
-
-We plan seven milestones:
-\begin{enumerate}[label=\textbf{M\arabic*}]
-\item The v1 engine with CP-SAT, explanations, CLI and viewer.
-\item A testing framework with oracles and generated scenarios.
-\item v2, with cpsolver as the default and real IITM meeting times.
-\item The demo portal on Google Sheets.
-\item The mid-evaluation.
-\item v3, with Postgres, prerequisites and a man page.
-\item Stress testing and deployment.
-\end{enumerate}
-
-The risks we take most seriously:
+\vspace{2pt}
+Four rules apply throughout:
 \begin{itemize}
-\item \textbf{The heuristic falls short of the optimum.} CP-SAT stays as a yardstick.
-\item \textbf{Our objective drifts away from cpsolver's score.} A test checks that the two scores are equal.
-\item \textbf{Real student data ends up in the repository.} Test grade cards are generated and marked, and a check rejects any that aren't.
-\item \textbf{Simultaneous submissions corrupt the data.} Transactions and database constraints guard against it, and the stress tests check it.
+\item Never assert one exact timetable when several are equally good.
+\item Seed every random test, so a failure can be replayed.
+\item Show that every bug-fix test fails on the old code.
+\item List every test, with what it checks, in the test plan.
 \end{itemize}
+GitHub Actions runs the Java suite, the portal suites (with a Postgres service), CLI runs with both solvers, and a man-page check on every push and pull request.
 
-The missing login is a known gap. We won't collect real data until there is institute sign-in, consent text and a retention policy.
+\section{Revised milestone plan}
 
-Some questions are still open. Who would supply verified course records, and in what format? Should some prerequisites ever block a submission, with an override? Is our rank weighting right, or should lower choices count for even less? And should room allocation eventually become part of the model?
+Our first plan (prompts P001--P005) ran straight to the mid-evaluation: architecture and synthetic data, the CP-SAT engine with explanations, tests, then evaluator documentation. We revised it as we learned. Comparing our model with UniTime showed that its search scales much better, and that our first engine missed a room clash and used approximate slot times, so we added a cpsolver milestone with real IITM meeting times. Typing preferences up by hand was clearly going to be the bottleneck, so we added the portal. Later, concurrent writers and prerequisites made relational storage necessary, so Postgres replaced the Sheet. Finally, we added a hardening milestone before deployment.
+
+\begin{tabularx}{\linewidth}{@{}L{8mm}L{37mm}Y L{24mm}@{}}
+\toprule
+& \textbf{Milestone} & \textbf{Done when} & \textbf{Change from first plan}\\
+\midrule
+M1 & Engine v1: CP-SAT, explanations, CLI, JavaFX, CI & Feasible fixture solves; infeasible one reports \code{FIXED\_CONFLICT}; hard rules hold on every output & As planned\\
+M2 & Testing framework & CP-SAT equals brute force on every seed; oracles agree with both solvers & Expanded (oracles, generated scenarios)\\
+M3 & Engine v2: cpsolver default, real IITM times, rooms, labs & cpsolver's score equals our objective; gap from CP-SAT measured on all scenarios & \textbf{New} (after the UniTime comparison)\\
+M4 & Demo portal on Google Sheets & Exports match the engine's CSVs byte for byte & \textbf{New}\\
+M5 & Mid-evaluation & Showcase dataset, three-page practices PDF, live code change rehearsed & As planned\\
+M6 & v3: Postgres, grade-card prerequisite warnings, man page & Portal and CLI warnings equal the golden file; integration tests pass on Postgres & \textbf{New} (replaces the Sheet)\\
+M7 & Hardening and deployment & No server errors under stress; deployed with a configured database & \textbf{New}\\
+\bottomrule
+\end{tabularx}
+
+\vspace{2pt}
+\textbf{Main risks.} The heuristic may fall short of the optimum; CP-SAT stays as the yardstick. Our objective could drift from cpsolver's score, so a test checks they are equal. Simultaneous submissions could corrupt data; transactions, constraints and stress tests guard against that. Real student data must never reach the repository: test grade cards are generated and marked, and a check rejects any that aren't. Until there is institute login and a consent policy, the portal collects no real data.
 
 \end{document}
