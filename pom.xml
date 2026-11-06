@@ -178,6 +178,9 @@
                                 <param>XML</param>
                             </outputFormats>
                             <timestampedReports>false</timestampedReports>
+                            <!-- 151 of 153 mutants are killed; the 2 survivors are equivalent
+                                 (see docs_v3/DEBUGGING.md section 15). Fail if test strength drops. -->
+                            <mutationThreshold>97</mutationThreshold>
                             <threads>2</threads>
                         </configuration>
                     </plugin>

@@ -68,7 +68,7 @@ jobs:
 
       - name: PIT mutation testing (Module 5)
         if: always()
-        run: mvn -B -ntp -Pquality -Dmaven.compiler.failOnWarning=false test-compile org.pitest:pitest-maven:mutationCoverage
+        run: mvn -B -ntp -Pquality test-compile org.pitest:pitest-maven:mutationCoverage
 
       - name: Mutation summary
         if: always()
