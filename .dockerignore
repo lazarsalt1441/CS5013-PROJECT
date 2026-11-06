@@ -1,4 +1,4 @@
-# Only pom.xml, src/, data/, man/, README.md and MANUAL.md are needed.
+# Only pom.xml, src/, data/, man/, README.md, MANUAL.md and THIRD_PARTY_NOTICES.md are needed.
 .git
 .github
 .vscode

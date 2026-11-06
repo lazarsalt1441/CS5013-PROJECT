@@ -23,6 +23,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
 | P017 | Add stress tests for the portal and the prerequisite checker | Accepted (PR #4) | `d2319e6`..current |
+| P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | In progress | see P019 |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -766,3 +767,51 @@ Added at review:
 | Portal stress | local Postgres 16, seeds 20261104, 1, 2, 3, 7, 8 | 14/14; about 18 s |
 | Java new and stress tests | local `javac --release 17`, JUnit stand-ins | 23/23; the stress class takes about 4 s |
 | Full Maven suite and CI stress step | CI run 41704760988 on PR #4 | Maven 75/75; portal 57/57, integration 4/4, stress 14/14 (scaling 1.53x and 1.30x against a limit of 5) |
+
+## P019 - Lecture practices not yet applied
+
+Written on 6 November 2026.
+
+### Original prompt
+
+> these are the lectures, put the things we followed, if we havent, try that out
+
+(The course slides for Modules 1-7 and 9 were supplied.)
+
+### CoSTAR prompt
+
+**Context:** The final report must cite course concepts with file paths and commits. A review of the slides against the repository found that most practices are already in use (CoSTAR and negative prompting; git, Conventional Commits and CI; structured debugging; fuzzing; docs as code; secrets in environment variables). Several practices the slides name explicitly are not yet in use: JaCoCo coverage, PIT mutation testing and jqwik property-based tests (Module 5); SpotBugs with the "static analyser first, then LLM, smallest patch" loop (Module 4); dependency auditing (Module 9); licence and provenance notices for redistributed code (Module 7).
+
+**Objective:** Apply each of those practices to this project, act on what they find, and record the evidence. Do not just switch the tools on.
+
+**Style:** Use the tools the slides name. Each tool runs in CI. Every finding is triaged as fixed or justified.
+
+**Tone:** Report the numbers as measured, including unflattering ones.
+
+**Audience:** CS5013 evaluators.
+
+**Response:** pom.xml plugins and a `quality` CI job; jqwik properties; tests that kill surviving mutants; SpotBugs fixes; `npm audit` in CI; `THIRD_PARTY_NOTICES.md` shipped in the Docker image; docs updated.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not add an LLM to the product to tick off Module 6; the design keeps models out of the decision path (NG1).
+- Do not change behaviour while fixing static-analysis findings unless the finding is a real bug; prefer the smallest patch (Module 4).
+- Do not chase a coverage percentage; use mutation results to judge test strength (Module 5).
+- Do not suppress a finding without a written reason.
+- Do not guess licences; read them from package metadata.
+- Do not slow the default `mvn test`; mutation testing runs in its own CI job.
+
+### Acceptance
+
+Accepted on 6 November 2026 after five CI rounds on PR #7; the last is all green.
+
+- jqwik found a real fault on its first run (touching off-grid meetings counted as a clash); fixed by rejecting off-grid times (DEBUGGING §13).
+- SpotBugs: 10 findings, of which 3 were a real locale bug (Turkish `I`); 0 remain, and new findings fail CI (§14).
+- PIT: 91.0% to 98.7% (151 of 153); the 2 survivors are equivalent and documented (§15); the build fails below 97%.
+- JaCoCo: 79.3% lines, 75.7% branches. Portal coverage: 96.4% lines, 90.6% branches. `npm audit`: 0 vulnerabilities.
+- Licences: 16 runtime dependencies, read from the generated report; LGPL cpsolver ships as a separate replaceable jar; licence texts are in the Docker image under `/app/licenses`.
+- Java tests: 75 to 93.
+
+Rejected along the way: two CI failures were my own compile errors (a stray brace and a missing import), and one property I wrote was wrong for students with no grade card. All three were caught by CI or by the property run, not by reading. Property tests are now type-checked locally against stub APIs before pushing.
