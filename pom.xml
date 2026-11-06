@@ -132,7 +132,9 @@
                             <effort>Max</effort>
                             <threshold>Low</threshold>
                             <xmlOutput>true</xmlOutput>
-                            <failOnError>false</failOnError>
+                            <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+                            <!-- Triaged (see spotbugs-exclude.xml); any new finding fails the build. -->
+                            <failOnError>true</failOnError>
                         </configuration>
                         <executions>
                             <execution>

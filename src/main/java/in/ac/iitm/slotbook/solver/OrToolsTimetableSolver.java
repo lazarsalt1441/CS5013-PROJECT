@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 /** CP-SAT formulation of IITM course-to-slot allocation (v1 solver, kept as the exact reference). */
 public final class OrToolsTimetableSolver implements TimetableSolver {
@@ -182,7 +183,7 @@ public final class OrToolsTimetableSolver implements TimetableSolver {
         Map<String, List<Course>> byRoom = new LinkedHashMap<>();
         for (Course course : problem.courses()) {
             if (course.hasRoom()) {
-                byRoom.computeIfAbsent(course.room().toUpperCase(), ignored -> new ArrayList<>()).add(course);
+                byRoom.computeIfAbsent(course.room().toUpperCase(Locale.ROOT), ignored -> new ArrayList<>()).add(course);
             }
         }
         forEachPair(byRoom, (a, b) -> forbidClashes(problem, grid, model, variables, a, b, true));

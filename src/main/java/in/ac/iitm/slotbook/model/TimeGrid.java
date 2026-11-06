@@ -15,14 +15,11 @@ import java.util.Map;
  * Rooms belong to the lecture only, because lab rooms are not part of the input.
  */
 public final class TimeGrid {
-    private final Map<String, Slot> slots;
     private final Map<String, BitSet> cells = new HashMap<>();
     private final Map<String, Boolean> overlapCache = new HashMap<>();
 
     public TimeGrid(List<Slot> slots) {
-        this.slots = new HashMap<>();
         for (Slot slot : slots) {
-            this.slots.put(slot.id(), slot);
             cells.put(slot.id(), slot.cells());
         }
     }
@@ -66,10 +63,5 @@ public final class TimeGrid {
 
     public boolean roomClash(Course a, String slotA, Course b, String slotB) {
         return a.hasRoom() && a.room().equalsIgnoreCase(b.room()) && overlaps(slotA, slotB);
-    }
-
-    public boolean isLab(String slotId) {
-        Slot slot = slots.get(slotId);
-        return slot != null && slot.isLab();
     }
 }

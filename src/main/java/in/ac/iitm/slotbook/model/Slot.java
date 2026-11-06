@@ -3,6 +3,7 @@ package in.ac.iitm.slotbook.model;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * IITM slot label and the weekly pattern represented by that label.
@@ -46,7 +47,7 @@ public record Slot(String id, String days, String startTimes, String lengths, St
         }
         List<Meeting> meetings = new ArrayList<>();
         for (int i = 0; i < dayParts.length; i++) {
-            int day = WEEKDAYS.indexOf(dayParts[i].trim().toUpperCase());
+            int day = WEEKDAYS.indexOf(dayParts[i].trim().toUpperCase(Locale.ROOT));
             if (day < 0) throw new IllegalArgumentException("Slot " + id + " has unknown day " + dayParts[i]);
             String[] clock = startParts[i].trim().split(":");
             int start = Integer.parseInt(clock[0]) * 60 + Integer.parseInt(clock[1]);
