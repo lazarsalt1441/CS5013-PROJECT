@@ -18,15 +18,15 @@ Earlier versions: [docs_v2](../docs_v2/README.md), [docs_v1](../docs_v1/README.m
 | Prerequisites | Not modelled | Professors declare them; warnings in portal and CLI, never enforced |
 | Completed courses | Not modelled | Parsed from the student's PDF grade card (U, W, I not completed); `admin` source reserved |
 | CLI options | 4 | 7 (`--prerequisites`, `--completed-courses`, `--no-prerequisite-check`); unknown options now an error |
-| Java tests (Maven) | 52 | 71 (19 new) |
-| Portal tests | 7 (mocked Apps Script) | 56 unit/contract (in-memory Postgres) + 4 integration (real Postgres 16) |
+| Java tests (Maven) | 52 | 75 (23 new, incl. 4 stress) |
+| Portal tests | 7 (mocked Apps Script) | 57 unit/contract (in-memory Postgres) + 4 integration + 14 stress (real Postgres 16) |
 | Man page | none | [`man/slotbook.1`](../man/slotbook.1), rendered in [`slotbook.1.txt`](../man/slotbook.1.txt) |
 
 The solver input, model and objective are unchanged: prerequisite data is kept outside `TimetableProblem`, and a test checks that the solver receives identical input with and without it.
 
 ## Documents
 
-Start here for an overview: [FUNCTIONALITY_AND_PROGRESS.md](../FUNCTIONALITY_AND_PROGRESS.md), which covers the features by status and the project timeline.
+Start here for an overview: [DESIGN.md](../DESIGN.md) (the design and its rationale) and [FUNCTIONALITY_AND_PROGRESS.md](../FUNCTIONALITY_AND_PROGRESS.md) (features by status and the project timeline).
 
 New or changed for v3:
 
@@ -62,7 +62,8 @@ Portal (Node 22+):
 ```bash
 cd portal
 npm install
-npm test                      # 56 tests, no network or database needed
+npm test                      # 57 tests, no network or database needed
+TEST_DATABASE_URL=postgres://... npm run test:stress       # 14 stress tests
 TEST_DATABASE_URL=postgres://... npm run test:integration   # 4 tests on a throwaway Postgres
 npm run check
 DATABASE_URL=postgres://... npm run db:migrate

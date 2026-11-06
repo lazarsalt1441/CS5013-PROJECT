@@ -4,13 +4,13 @@ A Java application that assigns IITM Electrical Engineering courses to instituti
 
 Documentation: [docs_v3](docs_v3/README.md) describes this version. [docs_v2](docs_v2/README.md) covers the UniTime wrapper and [docs_v1](docs_v1/README.md) the original CP-SAT version. Command reference: `man ./man/slotbook.1` ([text](man/slotbook.1.txt)).
 
-**Project status:** see [FUNCTIONALITY_AND_PROGRESS.md](FUNCTIONALITY_AND_PROGRESS.md) for what the tool does today and how the project progressed from v1 to v3.
+**Design:** [DESIGN.md](DESIGN.md) covers goals, requirements, alternatives considered, test strategy and risks. **Project status:** [FUNCTIONALITY_AND_PROGRESS.md](FUNCTIONALITY_AND_PROGRESS.md) covers what the tool does today and how the project progressed from v1 to v3.
 
 ## What changed in v3
 
 - The preference portal stores data in **Postgres on Neon** instead of Google Sheets, with migrations, database constraints and transactions.
 - Professors declare **prerequisites**. Students upload their **PDF grade card** (U, W and I do not count as completed). The portal and the CLI both report **advisory warnings**, never enforcement, with identical codes checked by a shared golden file.
-- A `slotbook(1)` man page, a manual covering the CLI and portal options, and a [test plan](docs_v3/TEST_PLAN.md) listing all 71 Java and 60 portal tests.
+- A `slotbook(1)` man page, a manual covering the CLI and portal options, and a [test plan](docs_v3/TEST_PLAN.md) listing all 75 Java and 75 portal tests, including stress tests.
 
 The solver, its model and its objective are unchanged from v2.
 

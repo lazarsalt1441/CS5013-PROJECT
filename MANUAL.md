@@ -95,7 +95,8 @@ The preference portal (`portal/`) is configured through environment variables in
 |---|---|
 | `npm run db:migrate` | Apply pending `db/migrations/*.sql` to `DATABASE_URL` (safe to re-run) |
 | `npm run dev` | Local server on port 4173 (or `PORT`) with the real API handlers |
-| `npm test` | 56 unit and contract tests; no network (Node 22+) |
+| `npm test` | 57 unit and contract tests; no network (Node 22+) |
+| `npm run test:stress` | 14 stress tests (fuzzing, volume, Postgres concurrency); the 5 Postgres ones need `TEST_DATABASE_URL`. Replay a failure with `STRESS_SEED=<seed>` |
 | `npm run test:integration` | 4 tests on real Postgres |
 | `npm run check` | Static checks |
 

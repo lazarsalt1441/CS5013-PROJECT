@@ -92,6 +92,7 @@ Status: **Done** means covered by automated tests and a recorded run. **Partial*
 | v1 with testing framework | 41 | none | Oracles, generated scenarios, brute force |
 | v2 | 52 | 7 | Every scenario solved by both solvers; portal contract tests with a mocked Apps Script |
 | v3 | 71 | 56 + 4 integration | Database-backed contract tests, grade-card parser, prerequisite parity, real-Postgres integration |
+| v3 stress (P017) | 75 | 57 + 4 integration + 14 stress | Seeded fuzzing, volume and scaling checks, 300-way concurrency on real Postgres; found 3 faults |
 
 CI on `main` runs:
 - both test suites, with a Postgres 16 service for the integration tests;
