@@ -89,4 +89,3 @@ class SlotPropertiesTest {
         assertTrue(slot("A", a).overlaps(slot("A", a)));
     }
 }
-}
