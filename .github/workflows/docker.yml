@@ -79,6 +79,13 @@ jobs:
           fi
           docker image inspect "$IMAGE:$SHORT" --format 'Image size: {{.Size}} bytes'
 
+      - name: "Check: the image carries third-party licences (Module 7)"
+        run: |
+          docker run --rm --entrypoint cat "$IMAGE:$SHORT" /app/licenses/THIRD-PARTY.txt | tee third-party.txt
+          grep -qi "cpsolver" third-party.txt && grep -qi "lesser general public" third-party.txt
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'ls /app/licenses /app/licenses/texts | head -40'
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'test -s /app/licenses/THIRD_PARTY_NOTICES.md'
+
       - name: Save the image
         run: |
           docker save "$IMAGE:$SHORT" "$IMAGE:$SHA" "$IMAGE:latest" | gzip > "slotbook-$SHORT.tar.gz"

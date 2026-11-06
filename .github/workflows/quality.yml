@@ -60,6 +60,12 @@ jobs:
               print(f"  [{b.get('priority')}] {b.get('type')} {b.get('category')} {where}")
           PY
 
+      - name: Third-party licences, read from the dependencies' POMs (Module 7)
+        if: always()
+        run: |
+          mvn -B -ntp -q org.codehaus.mojo:license-maven-plugin:2.4.0:add-third-party -Dlicense.excludedScopes=test,provided,system
+          cat target/generated-sources/license/THIRD-PARTY.txt
+
       - name: PIT mutation testing (Module 5)
         if: always()
         run: mvn -B -ntp -Pquality -Dmaven.compiler.failOnWarning=false test-compile org.pitest:pitest-maven:mutationCoverage
