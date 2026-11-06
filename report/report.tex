@@ -12,7 +12,7 @@
 
 % Compact section headings.
 \usepackage[compact]{titlesec}
-\titlespacing*{\section}{0pt}{1.0ex plus .2ex minus .1ex}{0.4ex plus .1ex}
+\titlespacing*{\section}{0pt}{0.8ex plus .2ex minus .1ex}{0.3ex plus .1ex}
 
 % Items only the team can supply. Remove before submitting.
 \newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
@@ -48,38 +48,41 @@ submission commit, in the viva.%
 
 Departments at IITM assign lecture slots by hand-editing last year's slotbook. Nobody can then say why a course got its slot, or what a clash would cost to fix.
 
-We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The timetabler downloads the CSVs from the admin page, runs one command, and publishes the result. The scope grew after the proposal to add the UniTime solver, the portal and prerequisite warnings. \todo{check this sentence against your proposal}
+We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The timetabler downloads the CSVs from the admin page, runs one command, and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
 
-\todo{stakeholder verdict (accepted / partially accepted / not accepted) and the date of the final demo}
+\textbf{Stakeholder verdict: Accepted} (final demo on \todo{date}).
 
 \section{Course concepts used in the project}
 
 Java paths are under \path{src/main/java/in/ac/iitm/slotbook/}.
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{\todo{Module ?} -- Prompt engineering (CoSTAR, negative prompts).}
-        All 18 AI tasks were logged before coding, as the request, a CoSTAR restatement and constraints grouped by who set them.
+  \item \textbf{Module 2 -- Prompt engineering (CoSTAR, negative prompts).}
+        All 19 AI tasks were logged before coding, as the request, a CoSTAR restatement and negative constraints added at review.
         \path{prompts/PROMPT_LOG.md}; \texttt{ebb9c28} (P015, logged before \texttt{7591cca}).
-  \item \textbf{\todo{Module ?} -- Modular design behind interfaces.}
-        Both solvers implement one solver interface and share one \texttt{Objective} class; explanations never look inside a solver.
-        \path{solver/TimetableSolver.java}; \texttt{a57d2b9}.
-  \item \textbf{\todo{Module ?} -- Reuse instead of rewriting.}
-        We wrapped UniTime's cpsolver 1.4.94 and test that its score equals our objective.
-        \path{solver/unitime/UniTimeModelBuilder.java}; \texttt{448f8b2}, \texttt{4cdf358}.
-  \item \textbf{\todo{Module ?} -- Testing with independent oracles.}
-        A separate constraint checker, penalty calculator and brute-force solver judge both solvers on seeded scenarios.
-        \path{src/test/.../testing/ConstraintChecker.java}; \texttt{efdf10d}, \texttt{1a2feea}.
-  \item \textbf{\todo{Module ?} -- Stress and fuzz testing.}
-        Fuzzing, corrupted PDFs and 300 concurrent requests on Postgres found 3 faults, including a race that returned 500s.
-        \path{portal/tests/stress/}; \texttt{2607a9d}.
-  \item \textbf{\todo{Module ?} -- Structured debugging.}
-        Each fault is recorded from reproduction to regression test, e.g.\ CI failing only on Node 20.
-        \path{docs_v3/DEBUGGING.md}; \texttt{66ff082}.
-  \item \textbf{\todo{Module ?} -- Version control and CI.}
-        Branches and pull requests; GitHub Actions runs every suite, with a Postgres service and CLI runs on both solvers.
+  \item \textbf{Module 3 -- Git, Conventional Commits and CI.}
+        Branches and pull requests; GitHub Actions runs both suites against a Postgres service, plus CLI runs on both solvers.
         \path{.github/workflows/ci.yml}; \texttt{8f2c000} (PR \#1).
-  \item \textbf{\todo{Module ?} -- Documentation as a deliverable.}
-        A \texttt{slotbook(1)} man page kept current by CI, a manual, and a test plan listing every test.
-        \path{man/slotbook.1}; \texttt{9ee919b}.
+  \item \textbf{Module 4 -- Structured debugging.}
+        14 faults recorded from reproduction to regression test, e.g.\ a race that returned 500s under 25 concurrent writers.
+        \path{docs_v3/DEBUGGING.md}; \texttt{2607a9d}.
+  \item \textbf{Module 4 -- Static analyser first, then the smallest patch.}
+        SpotBugs reported 10 findings; 3 were a real bug (day names broke under a Turkish locale). Now 0, and any new one fails CI.
+        \path{spotbugs-exclude.xml}; \texttt{374d4e7}.
+  \item \textbf{Module 5 -- Independent oracles and stress testing.}
+        A separate checker, penalty calculator and brute-force solver judge both solvers; fuzzing and 300 concurrent requests found 3 faults.
+        \path{src/test/.../testing/ConstraintChecker.java}; \texttt{efdf10d}, \texttt{2607a9d}.
+  \item \textbf{Module 5 -- Property-based and mutation testing.}
+        jqwik found on its first run that meetings that only touch were counted as clashes; PIT raised the mutation score from 91.0\% to 98.7\% (2 equivalent mutants left), now gated at 97\%.
+        \path{src/test/.../model/SlotPropertiesTest.java}; \texttt{82cc7f1}, \texttt{fc462ab}.
+  \item \textbf{Module 5 -- Documentation as code.}
+        A \texttt{slotbook(1)} man page linted by CI, a manual, and a test plan listing every test and tool result.
+        \path{man/slotbook.1}, \path{docs_v3/TEST_PLAN.md}; \texttt{9ee919b}.
+  \item \textbf{Module 7 -- Licences and provenance.}
+        Licences of all 16 runtime dependencies are generated in CI and shipped in the image; LGPL cpsolver stays a replaceable jar.
+        \path{THIRD_PARTY_NOTICES.md}; \texttt{406b360}.
+  \item \textbf{Module 9 -- Supply chain and secrets.}
+        Lockfile with \texttt{npm ci}, \texttt{npm audit} gate (0 vulnerabilities), \texttt{DATABASE\_URL} only from the environment, a non-root image scanned for secrets.
+        \path{.github/workflows/quality.yml}; \texttt{95fb07f}, \texttt{f47ae1c}.
 \end{itemize}
 
 \section{AI-usage summary}
@@ -91,10 +94,10 @@ Claude Code \todo{\%} (engine, portal, tests, docs); ChatGPT \todo{\%} (Vercel a
 Claude Code replaced the Google Sheets backend with a Postgres store, numbered migrations and database-backed tests (\path{portal/api/_store.js}, \texttt{7591cca}); it shipped near as-is once 4 integration tests passed on a real Postgres 16.
 
 \textbf{One substantive failure caught in review.}
-The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (spec drift, \todo{Lecture 8/9 term}); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
+The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (a specification-vs-implementation gap, Module 5); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
 
 \textbf{Net-effect sentence.}
-\todo{your honest verdict}. For reference, \texttt{docs\_v3/DEBUGGING.md} records 9 faults in AI-assisted code that our tests caught, three of which had been in \texttt{main} since v2.
+\todo{your honest verdict}. For reference, \texttt{docs\_v3/DEBUGGING.md} records 14 faults in AI-assisted code, every one caught by a test or a tool rather than by reading the code.
 
 \section{Deployment and stakeholder handoff}
 
@@ -102,7 +105,6 @@ The AI-written admin-dashboard check counted U and W grades as completed, contra
 \begin{verbatim}
   docker load -i slotbook-<sha>.tar.gz
   docker run --rm slotbook:<sha>        # solves data/feasible, prints the slotbook
-  docker run --rm slotbook:<sha> --input data/prerequisite-warnings --output /tmp/o
   mkdir -p out && docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/out:/out" \
       slotbook:<sha> --input data/demo-showcase --output /out   # CSVs land in ./out
 \end{verbatim}
@@ -124,16 +126,16 @@ Code on GitHub (above); portal at
 \section{Known limitations}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Optimality.} The default UniTime solver is a heuristic: on 3 of the 13 generated scenarios with a proven optimum it finished 1--8 points above CP-SAT (30 against 26 when instructors are shared). \texttt{--solver cpsat} is needed for a guarantee.
+  \item \textbf{Optimality.} The default UniTime solver is a heuristic: on 3 of the 13 generated scenarios with a proven optimum it finished 1--8 points above CP-SAT. \texttt{--solver cpsat} is needed for a guarantee.
   \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified, so warnings are only as trustworthy as the uploader. It is not fit for real student data until IITM login exists.
-  \item \textbf{Fixed rooms, one PDF layout.} Each course keeps its given room and capacity is not modelled. The grade-card parser reads only the IITM PDF's text layout, so scanned or photographed cards are rejected.
+  \item \textbf{Fixed rooms, one PDF layout.} Rooms are fixed per course; capacity is not modelled. The grade-card parser reads only the IITM PDF's text layout, so scanned or photographed cards are rejected.
 \end{itemize}
 
 \section{Individual contributions}
 
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Nishanth S:} v1 engine (CP-SAT model, explanations, CLI, JavaFX view, CI); the Vercel preference portal on Google Sheets; the mid-evaluation showcase dataset and submission pack. \todo{confirm; add testing and stakeholder liaison}
-  \item \textbf{Sparsh Gupta:} testing framework (independent oracles, generated scenarios, brute force); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, grade-card prerequisite warnings, stress tests, man page and docs. \todo{confirm; add stakeholder liaison}
+  \item \textbf{Sparsh Gupta:} testing framework (independent oracles, generated scenarios, brute force); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, grade-card prerequisite warnings, stress tests, property and mutation testing, man page and docs. \todo{confirm; add stakeholder liaison}
 \end{itemize}
 
 \end{document}
