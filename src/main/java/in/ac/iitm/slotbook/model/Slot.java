@@ -51,12 +51,22 @@ public record Slot(String id, String days, String startTimes, String lengths, St
             String[] clock = startParts[i].trim().split(":");
             int start = Integer.parseInt(clock[0]) * 60 + Integer.parseInt(clock[1]);
             int length = lengthParts.length == 0 ? DEFAULT_LENGTH_MINUTES : Integer.parseInt(lengthParts[i].trim());
+            // cells() works in CELL_MINUTES steps, as UniTime's time model does. Off-grid times would be
+            // rounded outwards and report false clashes between meetings that only touch (found by
+            // SlotPropertiesTest), so they are rejected here and reported as INVALID_SLOT_TIMES.
+            if (start % CELL_MINUTES != 0 || length % CELL_MINUTES != 0 || length <= 0) {
+                throw new IllegalArgumentException("Slot " + id + " meeting " + startParts[i].trim() + " for " + length
+                        + " min is not on the " + CELL_MINUTES + "-minute grid");
+            }
             meetings.add(new Meeting(day, start, length));
         }
         return meetings;
     }
 
-    /** Weekly occupancy as a bitset of {@link #CELL_MINUTES}-minute cells; two slots clash iff these intersect. */
+    /**
+     * Weekly occupancy as a bitset of {@link #CELL_MINUTES}-minute cells. Because {@link #meetings()} only
+     * accepts grid-aligned times, two slots clash iff these intersect.
+     */
     public BitSet cells() {
         BitSet cells = new BitSet(WEEKDAYS.size() * CELLS_PER_DAY);
         for (Meeting meeting : meetings()) {

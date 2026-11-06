@@ -48,5 +48,14 @@ class InputValidatorTest {
         assertEquals(Set.of("LAB_AS_LECTURE", "UNKNOWN_HISTORICAL_SLOT", "UNKNOWN_LAB_SLOT",
                 "FIXED_OVERLAPS_LAB", "DUPLICATE_PREFERENCE", "NEGATIVE_PENALTY"), codes);
     }
-}
 
+    @Test
+    void reportsSlotTimesOffTheFiveMinuteGrid() {
+        // Regression for the jqwik finding in SlotPropertiesTest: off-grid times are invalid input.
+        TimetableProblem problem = new TimetableProblem(
+                List.of(), List.of(new Slot("A", "MON", "08:03", "LECTURE")), List.of(), List.of(), List.of());
+        List<ValidationIssue> issues = new InputValidator().validate(problem);
+        assertTrue(issues.stream().anyMatch(issue -> issue.code().equals("INVALID_SLOT_TIMES")
+                && issue.message().contains("5-minute grid")), issues.toString());
+    }
+}

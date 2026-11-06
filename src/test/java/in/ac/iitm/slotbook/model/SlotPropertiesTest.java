@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Property-based tests (CS5013 Module 5) for slot overlap, the basis of every clash rule.
@@ -49,33 +51,42 @@ class SlotPropertiesTest {
         return meeting.list().ofMinSize(1).ofMaxSize(3);
     }
 
-    @Provide
-    Arbitrary<List<M>> anyMinute() {
-        return meetings(1);
-    }
+    /** IITM's grid, and UniTime's time model, use 5-minute steps. */
+    private static final int GRID = 5;
 
     @Provide
     Arbitrary<List<M>> onTheGrid() {
-        return meetings(Slot.CELL_MINUTES);
+        return meetings(GRID);
     }
 
-    @Property(tries = 2000)
-    void overlapMatchesTheIntervalDefinitionAtAnyMinute(@ForAll("anyMinute") List<M> a, @ForAll("anyMinute") List<M> b) {
+    @Provide
+    Arbitrary<List<M>> offTheGrid() {
+        return meetings(1).filter(list -> list.stream().anyMatch(m -> m.start() % GRID != 0 || m.length() % GRID != 0));
+    }
+
+    @Property(tries = 3000)
+    void overlapMatchesTheIntervalDefinition(@ForAll("onTheGrid") List<M> a, @ForAll("onTheGrid") List<M> b) {
         assertEquals(oracle(a, b), slot("A", a).overlaps(slot("B", b)), () -> a + " vs " + b);
     }
 
-    @Property(tries = 2000)
-    void overlapMatchesTheIntervalDefinitionOnTheFiveMinuteGrid(@ForAll("onTheGrid") List<M> a, @ForAll("onTheGrid") List<M> b) {
-        assertEquals(oracle(a, b), slot("A", a).overlaps(slot("B", b)), () -> a + " vs " + b);
+    /**
+     * Found by jqwik on the first run: at arbitrary minutes, meetings that only touch (07:01-07:21 and
+     * 07:21-07:31) were reported as clashing, because cells round starts down and ends up. Off-grid times
+     * are now rejected (and reported by the validator as INVALID_SLOT_TIMES) instead of silently rounded.
+     */
+    @Property(tries = 1000)
+    void timesOffTheFiveMinuteGridAreRejected(@ForAll("offTheGrid") List<M> a) {
+        assertThrows(IllegalArgumentException.class, () -> slot("A", a).meetings());
     }
 
     @Property(tries = 1000)
-    void overlapIsSymmetric(@ForAll("anyMinute") List<M> a, @ForAll("anyMinute") List<M> b) {
+    void overlapIsSymmetric(@ForAll("onTheGrid") List<M> a, @ForAll("onTheGrid") List<M> b) {
         assertEquals(slot("A", a).overlaps(slot("B", b)), slot("B", b).overlaps(slot("A", a)));
     }
 
     @Property(tries = 500)
-    void everySlotOverlapsItself(@ForAll("anyMinute") List<M> a) {
-        assertEquals(true, slot("A", a).overlaps(slot("A", a)));
+    void everySlotOverlapsItself(@ForAll("onTheGrid") List<M> a) {
+        assertTrue(slot("A", a).overlaps(slot("A", a)));
     }
+}
 }
