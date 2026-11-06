@@ -28,9 +28,9 @@
 \vspace{-2.0em}
 
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
-  \item[Team Name:]         \todo{team name}
+  \item[Team Name:]         TT generator
   \item[Repository:]      \url{https://github.com/lazarsalt1441/CS5013-PROJECT}
-  \item[Submission commit:] \texttt{\todo{SHA of the final-submission tag}} (date: \texttt{\todo{YYYY-MM-DD}}).
+  \item[Submission commit:] \texttt{\todo{SHA of the final-submission tag}} (date: \texttt{2026-11-06}).
   \item[Docker image:]    \todo{Google Drive link to slotbook-\textless sha\textgreater.tar.gz}
   \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable from course and preference data without breaking any hard rule, and explains why each course got its slot.}
 \end{description}
@@ -50,7 +50,7 @@ Departments at IITM assign lecture slots by hand-editing last year's slotbook. N
 
 We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The timetabler downloads the CSVs from the admin page, runs one command, and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
 
-\textbf{Stakeholder verdict: Accepted} (final demo on \todo{date}).
+\textbf{Stakeholder verdict: Accepted} (final demo on Friday, 6 November 2026).
 
 \section{Course concepts used in the project}
 
@@ -119,8 +119,8 @@ Code on GitHub (above); portal at
 
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
-\textit{``\todo{stakeholder's exact words from the final demo email}''\\
--- \todo{Name, role}, \todo{date}.}
+\textit{``The project works as per the expectations given. To integrate it with IITM's data, the admin would need to make some modifications to get data from their databases, but this is good enough from your side.''\\
+-- \todo{Name, role}, 6 November 2026.}
 \end{quote}
 
 \section{Known limitations}
