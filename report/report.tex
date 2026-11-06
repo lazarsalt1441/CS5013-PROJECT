@@ -31,7 +31,7 @@
   \item[Team Name:]         \todo{team name}
   \item[Repository:]      \url{https://github.com/lazarsalt1441/CS5013-PROJECT}
   \item[Submission commit:] \texttt{\todo{SHA of the final-submission tag}} (date: \texttt{\todo{YYYY-MM-DD}}).
-  \item[Docker image:]    \todo{Google Drive link}
+  \item[Docker image:]    \todo{Google Drive link to slotbook-<sha>.tar.gz}
   \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable from course and preference data without breaking any hard rule, and explains why each course got its slot.}
 \end{description}
 
@@ -100,11 +100,15 @@ The AI-written admin-dashboard check counted U and W grades as completed, contra
 
 \textbf{Build and run.}
 \begin{verbatim}
-  docker load -i slotbook.tar
-  docker run --rm slotbook --input data/feasible --output /tmp/out
-  docker run --rm slotbook --input data/prerequisite-warnings --output /tmp/out
+  docker load -i slotbook-<sha>.tar.gz
+  docker run --rm slotbook:<sha>        # solves data/feasible, prints the slotbook
+  docker run --rm slotbook:<sha> --input data/prerequisite-warnings --output /tmp/o
+  mkdir -p out && docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/out:/out" \
+      slotbook:<sha> --input data/demo-showcase --output /out   # CSVs land in ./out
 \end{verbatim}
-\todo{confirm once the Docker image exists}
+\vspace{-0.5em}
+\todo{replace <sha> with the 7-character SHA of the final-submission commit}
+The image holds the engine and CLI. The web portal runs on Vercel and is not part of it.
 
 \textbf{Where the artefact lives after the course.}
 Code on GitHub (above); portal at
