@@ -805,4 +805,13 @@ Added at review:
 
 ### Acceptance
 
-(Filled in after CI.)
+Accepted on 6 November 2026 after five CI rounds on PR #7; the last is all green.
+
+- jqwik found a real fault on its first run (touching off-grid meetings counted as a clash); fixed by rejecting off-grid times (DEBUGGING §13).
+- SpotBugs: 10 findings, of which 3 were a real locale bug (Turkish `I`); 0 remain, and new findings fail CI (§14).
+- PIT: 91.0% to 98.7% (151 of 153); the 2 survivors are equivalent and documented (§15); the build fails below 97%.
+- JaCoCo: 79.3% lines, 75.7% branches. Portal coverage: 96.4% lines, 90.6% branches. `npm audit`: 0 vulnerabilities.
+- Licences: 16 runtime dependencies, read from the generated report; LGPL cpsolver ships as a separate replaceable jar; licence texts are in the Docker image under `/app/licenses`.
+- Java tests: 75 to 93.
+
+Rejected along the way: two CI failures were my own compile errors (a stray brace and a missing import), and one property I wrote was wrong for students with no grade card. All three were caught by CI or by the property run, not by reading. Property tests are now type-checked locally against stub APIs before pushing.
