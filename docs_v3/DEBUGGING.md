@@ -83,3 +83,35 @@ The method is unchanged from [v2](../docs_v2/DEBUGGING.md): reproduce, observe, 
 - **Correct:** Escape the hyphen (`[A-Za-z0-9_\-]`) and add an inline SVG favicon to every page.
 - **Test:** `npm run check` now compiles every `pattern` attribute with the `v` flag and requires a favicon link. Run against the old page, it reports both faults. The walkthrough now shows no console errors, and the browser rejects `a!` while accepting `S-031_a`.
 - **Lesson:** The earlier smoke test listened only for uncaught exceptions; browser-reported problems arrive as console errors. Listen to both.
+
+## Faults found by the stress suite (P017)
+
+### 10. A corrupted grade card caused a server error
+
+- **Reproduce:** `fuzz.stress.mjs`, 300 mutated PDFs. Mutation 0 (junk appended) escaped as `UnknownErrorException: Invalid number: %`.
+- **Isolate:** The fix in §8 translated a fixed list of pdf.js error names into a student-facing message. `UnknownErrorException` wasn't on the list, so the upload became a 500. Errors from `getPage` and `getTextContent` were outside the `try` entirely.
+- **Correct:** Every read step is inside the `try`, and errors are classified by origin: pdf.js's own `*Exception` classes and `FormatError` mean a bad file; plain JavaScript errors mean a server fault. §8's guarantee still holds, and its regression test passes.
+- **Test:** The fuzz test, on four seeds (about 210 of 300 rejected cleanly, the rest parsed), plus a unit test of the classifier.
+- **Lesson:** An allow-list of library error names is fragile; classify by what produced the error.
+
+### 11. Grade-card row building was quadratic
+
+- **Reproduce:** `volume.stress.mjs`. 10x the text items took 102x the time; 20,000 rows took about 1 s.
+- **Isolate:** `itemsToRows` searched all rows built so far for every item (`rows.find`).
+- **Correct:** The items are already sorted top to bottom, so an item can only join the row currently being built. One pass is enough: 20,000 rows now take 24 ms.
+- **Test:** The equal-work scaling check measures 1.7–2.0 for the new code and 9.3 for the old (limit 5).
+- **Lesson:** Uploads up to 3 MB are attacker-sized inputs. Anything that runs per text item must be linear.
+
+### 12. Concurrent prerequisite updates for one course returned 500
+
+- **Reproduce:** `postgres.stress.mjs`. 17 of 25 professors replacing EE1000's prerequisites at once got 500, with `duplicate key value violates unique constraint "prerequisites_pkey"` in the log.
+- **Isolate:** Under READ COMMITTED, each transaction deletes the course's rows, then inserts its own. Two transactions can't see each other's uncommitted inserts, so both insert the same key, and the later commit fails. Different professors don't share a row lock, unlike two submissions by the same student or professor.
+- **Correct:** `saveInstructor` takes `pg_advisory_xact_lock(hashtext('prerequisites:' || course))` before the delete. Writers for the same course take turns, the last writer wins, and the lock is released on commit or rollback.
+- **Test:** The stress test passes on three seeds and fails when the lock line is removed. pg-mem lacks advisory locks, so `tests/helpers.mjs` registers no-op stand-ins; pg-mem runs one query at a time, so nothing is lost.
+- **Lesson:** The v3 integration test for concurrency used `Promise.allSettled` and only checked the final state, so failed writes passed silently. A stress test must also require every request to succeed.
+
+### Test-design corrections (not product faults)
+
+- The first instructor fuzz run asserted that more than 200 of 5,000 random payloads would be valid; the generator produces about 160. The threshold exists only to make sure the invariants get exercised, so it is now 100.
+- The first 20,000-row grade-card test generated course codes like `EE20999`. The parser correctly rejects 5-digit codes, so the test data now stays within `EE1000`–`EE9999`.
+- The first scaling checks compared one run on 10x input with one small run (median of three). For the same linear Java code they measured anywhere from 8x to 24x, because the small run took only tens of milliseconds. They now compare equal total work, after warm-up, fastest of five.

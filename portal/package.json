@@ -10,7 +10,8 @@
     "serve": "python3 -m http.server 4173 --directory public",
     "test:integration": "node --test tests/integration/*.test.mjs",
     "db:migrate": "node scripts/migrate.mjs",
-    "dev": "node scripts/dev-server.mjs"
+    "dev": "node scripts/dev-server.mjs",
+    "test:stress": "node --test --test-concurrency=1 tests/stress/*.stress.mjs"
   },
   "engines": {
     "node": ">=22"
