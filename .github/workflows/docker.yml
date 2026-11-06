@@ -68,9 +68,15 @@ jobs:
           if docker image inspect "$IMAGE:$SHORT" --format '{{json .Config.Env}}' | grep -iE 'password|secret|token|api_?key|database_url'; then
             echo "Image environment contains something that looks like a secret"; exit 1
           fi
+          # Scan only what this project adds (/app). The base image's public CA
+          # certificates under /etc/ssl/certs are *.pem files but hold nothing private.
           container=$(docker create "$IMAGE:$SHORT")
-          docker export "$container" | tar -t | grep -E '(^|/)\.env|id_rsa|\.pem$|credentials' && { echo "Secret-like file in image"; exit 1; } || true
+          docker export "$container" | tar -t | grep '^app/' > app-files.txt
           docker rm "$container" > /dev/null
+          echo "Files under /app: $(wc -l < app-files.txt)"; grep -v '^app/lib/' app-files.txt
+          if grep -iE '(^|/)\.env|id_rsa|\.pem$|\.key$|credentials|secret' app-files.txt; then
+            echo "Secret-like file under /app"; exit 1
+          fi
           docker image inspect "$IMAGE:$SHORT" --format 'Image size: {{.Size}} bytes'
 
       - name: Save the image
