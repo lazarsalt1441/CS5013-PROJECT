@@ -46,7 +46,7 @@ submission commit, in the viva.%
 
 \section{Executive summary}
 
-Departments at IITM assign lecture slots by hand-editing last year's slotbook. Nobody can then say why a course got its slot, or what a clash would cost to fix.
+IITM departments assign lecture slots by hand-editing last year's slotbook, so nobody can say why a course got its slot.
 
 We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The timetabler downloads the CSVs from the admin page, runs one command, and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
 
@@ -75,7 +75,7 @@ Java paths are under \path{src/main/java/in/ac/iitm/slotbook/}.
         jqwik found on its first run that meetings that only touch were counted as clashes; PIT raised the mutation score from 91.0\% to 98.7\% (2 equivalent mutants left), now gated at 97\%.
         \path{src/test/.../model/SlotPropertiesTest.java}; \texttt{82cc7f1}, \texttt{fc462ab}.
   \item \textbf{Module 5 -- Documentation as code.}
-        A \texttt{slotbook(1)} man page linted by CI, a manual, and a test plan listing every test and tool result.
+        A man page linted by CI, a manual, and a test plan listing every test.
         \path{man/slotbook.1}, \path{docs_v3/TEST_PLAN.md}; \texttt{9ee919b}.
   \item \textbf{Module 7 -- Licences and provenance.}
         Licences of all 16 runtime dependencies are generated in CI and shipped in the image; LGPL cpsolver stays a replaceable jar.
@@ -113,8 +113,7 @@ The AI-written admin-dashboard check counted U and W grades as completed, contra
 The image holds the engine and CLI. The web portal runs on Vercel and is not part of it.
 
 \textbf{Where the artefact lives after the course.}
-Code on GitHub (above); portal at
-\url{https://cs5013-project-portal.vercel.app}.
+Code on GitHub (above); portal at \url{https://cs5013-project-portal.vercel.app}.
 \todo{who keeps it running after the course?}
 
 \textbf{Stakeholder quote (one sentence, verbatim).}
@@ -127,7 +126,7 @@ Code on GitHub (above); portal at
 
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Optimality.} The default UniTime solver is a heuristic: on 3 of the 13 generated scenarios with a proven optimum it finished 1--8 points above CP-SAT. \texttt{--solver cpsat} is needed for a guarantee.
-  \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified, so warnings are only as trustworthy as the uploader. It is not fit for real student data until IITM login exists.
+  \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified. It is not fit for real student data until IITM login exists.
   \item \textbf{Fixed rooms, one PDF layout.} Rooms are fixed per course; capacity is not modelled. The grade-card parser reads only the IITM PDF's text layout, so scanned or photographed cards are rejected.
 \end{itemize}
 
@@ -135,7 +134,7 @@ Code on GitHub (above); portal at
 
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Nishanth S:} v1 engine (CP-SAT model, explanations, CLI, JavaFX view, CI); the Vercel preference portal on Google Sheets; the mid-evaluation showcase dataset and submission pack. \todo{confirm; add testing and stakeholder liaison}
-  \item \textbf{Sparsh Gupta:} testing framework (independent oracles, generated scenarios, brute force); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, grade-card prerequisite warnings, stress tests, property and mutation testing, man page and docs. \todo{confirm; add stakeholder liaison}
+  \item \textbf{Sparsh Gupta:} testing framework (independent oracles, generated scenarios, brute force); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, grade-card prerequisite warnings, stress tests, property and mutation testing, man page and docs. \todo{confirm}
 \end{itemize}
 
 \end{document}
