@@ -60,8 +60,9 @@ public final class SolverServer {
             try {
                 route(exchange, endpoint, apiKey);
             } catch (RuntimeException | IOException fault) {
-                fault.printStackTrace(System.err);
-                send(exchange, SolveEndpoint.error(500, "Internal error"));
+                System.err.println("Request " + exchange.getRequestMethod() + " " + exchange.getRequestURI() + " failed: " + fault);
+                // Only answer if nothing was sent yet; a second sendResponseHeaders would throw again.
+                if (exchange.getResponseCode() == -1) send(exchange, SolveEndpoint.error(500, "Internal error"));
             } finally {
                 exchange.close();
             }
@@ -73,7 +74,8 @@ public final class SolverServer {
     private static void route(HttpExchange exchange, SolveEndpoint endpoint, String apiKey) throws IOException {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
-        if ("/health".equals(path) || "/".equals(path) && "GET".equals(method)) {
+        boolean read = "GET".equals(method) || "HEAD".equals(method);
+        if ("/health".equals(path) || "/".equals(path) && read) {
             send(exchange, new SolveEndpoint.Reply(200, "{\"ok\":true,\"service\":\"slotbook-solver\"}"));
             return;
         }
@@ -111,6 +113,11 @@ public final class SolverServer {
     private static void send(HttpExchange exchange, SolveEndpoint.Reply reply) throws IOException {
         byte[] bytes = reply.json().getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        if ("HEAD".equals(exchange.getRequestMethod())) {
+            // Hosts probe with HEAD; a HEAD reply must not carry a body.
+            exchange.sendResponseHeaders(reply.status(), -1);
+            return;
+        }
         exchange.sendResponseHeaders(reply.status(), bytes.length);
         try (OutputStream out = exchange.getResponseBody()) {
             out.write(bytes);
