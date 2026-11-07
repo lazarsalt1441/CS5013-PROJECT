@@ -37,8 +37,9 @@ public final class PortalDataset {
     public static Summary prepare(Path base, Path target, Map<?, ?> payload) throws IOException {
         try (Stream<Path> files = Files.list(base)) {
             for (Path file : (Iterable<Path>) files::iterator) {
-                if (Files.isRegularFile(file) && file.getFileName().toString().endsWith(".csv")) {
-                    Files.copy(file, target.resolve(file.getFileName().toString()));
+                Path name = file.getFileName();
+                if (name != null && Files.isRegularFile(file) && name.toString().endsWith(".csv")) {
+                    Files.copy(file, target.resolve(name.toString()));
                 }
             }
         }
