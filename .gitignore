@@ -12,4 +12,11 @@ portal/.vercel/
 portal/.env.local
 
 portal/node_modules/
+
+# LaTeX build files
+docs_design/*.aux
+docs_design/*.log
+docs_design/*.fls
+docs_design/*.fdb_latexmk
+docs_design/*.out
 demo-live/

@@ -23,6 +23,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
 | P017 | Add stress tests for the portal and the prerequisite checker | Accepted (PR #4) | `d2319e6`..current |
+| P018 | Design document written as the project's upfront design | Accepted | see P018 |
 | P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | Accepted | see P019 |
 | P020 | Make the admin page's "Generate slotbook" button work: a solver web service in the Docker image | Accepted (PR #8) | see P020 |
 
@@ -768,6 +769,47 @@ Added at review:
 | Portal stress | local Postgres 16, seeds 20261104, 1, 2, 3, 7, 8 | 14/14; about 18 s |
 | Java new and stress tests | local `javac --release 17`, JUnit stand-ins | 23/23; the stress class takes about 4 s |
 | Full Maven suite and CI stress step | CI run 41704760988 on PR #4 | Maven 75/75; portal 57/57, integration 4/4, stress 14/14 (scaling 1.53x and 1.30x against a limit of 5) |
+
+## P018 - Design document
+
+Written on 5 November 2026.
+
+### Original prompt
+
+> can you generate a design doc for this, as if we did it in the beginning of the course
+
+Planning answer: write it in planning voice, with a header saying it was reconstructed (chosen over an unlabelled current-state doc).
+
+### CoSTAR prompt
+
+**Context:** The project's design decisions are spread across prompts P001–P017, the per-version docs and the commit history. There is no single design document.
+
+**Objective:** One design document in the form a team writes before building: problem, goals and non-goals, users, requirements, proposed design, alternatives considered, test strategy, process, milestones, risks and open questions.
+
+**Style:** Planning voice ("we will"); requirements numbered so the design and the tests can refer to them; alternatives in tables with the reason for each choice.
+
+**Tone:** Decisive but honest about trade-offs and what is deferred.
+
+**Audience:** CS5013 evaluators, and a team member joining the project.
+
+**Response:** `DESIGN.md` at the repository root, linked from the README, plus a traceability appendix from each requirement to where it was built and tested.
+
+### Negative prompt / constraints
+
+Agreed in planning:
+
+- Do not present the reconstruction as an original October document; say so in the header.
+
+Added at review:
+
+- Do not include decisions the project never made, or omit alternatives it actually weighed (the Sheets-first portal, CP-SAT before UniTime, warn rather than enforce).
+- Do not quote test counts or results as targets; the doc states criteria, and the test plans hold the numbers.
+- Do not duplicate the manual or architecture docs; link to them.
+
+### Acceptance
+
+- Every requirement in the traceability appendix points to an existing module, test or document; links checked.
+- Decisions match the prompt log entries they cite.
 
 ## P019 - Lecture practices not yet applied
 

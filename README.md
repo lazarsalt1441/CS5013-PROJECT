@@ -4,7 +4,7 @@ A Java application that assigns IITM Electrical Engineering courses to instituti
 
 Documentation: [docs_v3](docs_v3/README.md) describes this version. [docs_v2](docs_v2/README.md) covers the UniTime wrapper and [docs_v1](docs_v1/README.md) the original CP-SAT version. Command reference: `man ./man/slotbook.1` ([text](man/slotbook.1.txt)).
 
-**Project status:** see [FUNCTIONALITY_AND_PROGRESS.md](FUNCTIONALITY_AND_PROGRESS.md) for what the tool does today and how the project progressed from v1 to v3.
+**Design:** [DESIGN.md](DESIGN.md) covers goals, requirements, alternatives considered, test strategy and risks. **Project status:** [FUNCTIONALITY_AND_PROGRESS.md](FUNCTIONALITY_AND_PROGRESS.md) covers what the tool does today and how the project progressed from v1 to v3.
 
 ## What changed in v3
 
