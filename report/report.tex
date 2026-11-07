@@ -48,7 +48,7 @@ submission commit, in the viva.%
 
 IITM departments assign lecture slots by hand-editing last year's slotbook, so nobody can say why a course got its slot.
 
-We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The timetabler downloads the CSVs from the admin page, runs one command, and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
+We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The admin's ``Generate slotbook'' button runs the engine as a web service and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
 
 \textbf{Stakeholder verdict: Accepted} (final demo on Friday, 6 November 2026).
 
@@ -57,7 +57,7 @@ We shipped a Java engine that validates five CSV inputs, solves with UniTime's c
 Java paths are under \path{src/main/java/in/ac/iitm/slotbook/}.
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Module 2 -- Prompt engineering (CoSTAR, negative prompts).}
-        All 19 AI tasks were logged before coding, as the request, a CoSTAR restatement and negative constraints added at review.
+        All 20 AI tasks were logged before coding, as the request, a CoSTAR restatement and negative constraints added at review.
         \path{prompts/PROMPT_LOG.md}; \texttt{ebb9c28} (P015, logged before \texttt{7591cca}).
   \item \textbf{Module 3 -- Git, Conventional Commits and CI.}
         Branches and pull requests; GitHub Actions runs both suites against a Postgres service, plus CLI runs on both solvers.
@@ -110,10 +110,10 @@ The AI-written admin-dashboard check counted U and W grades as completed, contra
 \end{verbatim}
 \vspace{-0.5em}
 \todo{replace <sha> with the 7-character SHA of the final-submission commit}
-The image holds the engine and CLI. The web portal runs on Vercel and is not part of it.
+The image holds the engine, CLI and solver web service (\texttt{docker run ... serve}); the portal runs on Vercel.
 
 \textbf{Where the artefact lives after the course.}
-Code on GitHub (above); portal at \url{https://cs5013-project-portal.vercel.app}.
+Code on GitHub; portal at \url{https://cs5013-project-portal.vercel.app}; solver service at \url{https://slotbook-solver.onrender.com}.
 \todo{who keeps it running after the course?}
 
 \textbf{Stakeholder quote (one sentence, verbatim).}
@@ -125,7 +125,7 @@ Code on GitHub (above); portal at \url{https://cs5013-project-portal.vercel.app}
 \section{Known limitations}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Optimality.} The default UniTime solver is a heuristic: on 3 of the 13 generated scenarios with a proven optimum it finished 1--8 points above CP-SAT. \texttt{--solver cpsat} is needed for a guarantee.
+  \item \textbf{Optimality.} UniTime is a heuristic: on 3 of 13 generated scenarios it finished 1--8 points above the CP-SAT optimum.
   \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified. It is not fit for real student data until IITM login exists.
   \item \textbf{Fixed rooms, one PDF layout.} Rooms are fixed per course; capacity is not modelled. The grade-card parser reads only the IITM PDF's text layout, so scanned or photographed cards are rejected.
 \end{itemize}
@@ -133,8 +133,8 @@ Code on GitHub (above); portal at \url{https://cs5013-project-portal.vercel.app}
 \section{Individual contributions}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Nishanth S:} v1 engine (CP-SAT model, explanations, CLI, JavaFX view, CI); the Vercel preference portal on Google Sheets; the mid-evaluation showcase dataset and submission pack. \todo{confirm; add testing and stakeholder liaison}
-  \item \textbf{Sparsh Gupta:} testing framework (independent oracles, generated scenarios, brute force); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, grade-card prerequisite warnings, stress tests, property and mutation testing, man page and docs. \todo{confirm}
+  \item \textbf{Nishanth S:} v1 engine (CP-SAT model, explanations, CLI, JavaFX view, CI); the Vercel preference portal on Google Sheets; the mid-evaluation showcase and pack. \todo{confirm}
+  \item \textbf{Sparsh Gupta:} testing framework (oracles, generated scenarios); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, prerequisite warnings, stress, property and mutation tests, solver service, docs. \todo{confirm}
 \end{itemize}
 
 \end{document}
