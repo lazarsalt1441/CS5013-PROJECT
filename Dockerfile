@@ -22,6 +22,16 @@ RUN mvn -B -ntp -q -Dmaven.test.skip=true package \
  && mvn -B -ntp -q dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/lib \
  && cp target/explainable-slotbook-*.jar target/app.jar
 
+# The image redistributes these libraries, so it carries their licences (CS5013 Module 7).
+# The list is read from each dependency's own POM, and the licence texts are downloaded.
+ARG LICENSE_PLUGIN=org.codehaus.mojo:license-maven-plugin:2.4.0
+RUN mvn -B -ntp -q ${LICENSE_PLUGIN}:add-third-party ${LICENSE_PLUGIN}:download-licenses \
+        -Dlicense.excludedScopes=test,provided,system -Dlicense.errorRemedy=warn \
+ && mkdir -p target/licenses \
+ && cp target/generated-sources/license/THIRD-PARTY.txt target/licenses/ \
+ && cp -r target/generated-resources/licenses target/licenses/texts \
+ && cp target/generated-resources/licenses.xml target/licenses/
+
 # ---- runtime ----------------------------------------------------------------
 # Ubuntu-based (glibc), because OR-Tools' native library does not run on Alpine.
 FROM eclipse-temurin:17-jre-jammy
@@ -39,13 +49,20 @@ WORKDIR /app
 
 COPY --from=build /src/target/lib/ /app/lib/
 COPY --from=build /src/target/app.jar /app/app.jar
+COPY --from=build /src/target/licenses/ /app/licenses/
+COPY THIRD_PARTY_NOTICES.md /app/licenses/
 COPY data/ /app/data/
 COPY man/ /app/man/
 COPY README.md MANUAL.md /app/
+COPY docker/entrypoint.sh /app/bin/slotbook
+RUN chmod 755 /app/bin/slotbook
 
 ENV GIT_SHA=${GIT_SHA}
 USER slotbook
 
-ENTRYPOINT ["java", "-cp", "/app/app.jar:/app/lib/*", "in.ac.iitm.slotbook.cli.SlotbookCli"]
+# CLI by default; "serve" (or SLOTBOOK_SERVE=1) starts the solver web service on $PORT (default 8080).
+ENV SLOTBOOK_BASE=/app/data/feasible
+EXPOSE 8080
+ENTRYPOINT ["/app/bin/slotbook"]
 # Default run: solve the main sample dataset and print the slotbook.
 CMD ["--input", "data/feasible", "--output", "/tmp/slotbook-output"]

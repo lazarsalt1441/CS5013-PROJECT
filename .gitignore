@@ -12,3 +12,4 @@ portal/.vercel/
 portal/.env.local
 
 portal/node_modules/
+demo-live/

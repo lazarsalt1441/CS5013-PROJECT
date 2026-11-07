@@ -61,6 +61,31 @@ jobs:
           set -e
           test "$code" -eq 1
 
+      - name: "Check: solver web service answers like the portal expects (P020)"
+        run: |
+          docker run -d --name solver -p 18080:8080 -e SOLVER_API_KEY=ci-key "$IMAGE:$SHORT" serve
+          for i in $(seq 1 30); do curl -sf localhost:18080/health && break; sleep 1; done
+          echo
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:18080/solve -d '{}')" = 401
+          curl -s -X POST localhost:18080/solve -H "Authorization: Bearer ci-key" \
+            -d '{"solver":"cpsat","instructor_preferences_csv":"instructor,slot,penalty,reason\nPradeep K,E,100,Department meeting\n"}' \
+            | tee solve.json | head -c 400; echo
+          python3 - <<'PY'
+          import json
+          reply = json.load(open("solve.json"))
+          assert reply["ok"] is True, reply
+          assert reply["merged_instructor_rows"] == 1, reply
+          slots = {row["course_id"]: row["assigned_slot"] for row in reply["slotbook"]}
+          assert len(reply["slotbook"]) == len(reply["explanations"]) > 0
+          print("EE1101 ->", slots["EE1101"], "objective", reply["objective"])
+          PY
+          docker logs solver
+          docker rm -f solver
+          docker run -d --name solver2 -p 18081:8080 -e SLOTBOOK_SERVE=1 "$IMAGE:$SHORT"
+          for i in $(seq 1 30); do curl -sf localhost:18081/health && break; sleep 1; done
+          curl -sf localhost:18081/health
+          docker rm -f solver2
+
       - name: "Check: image metadata and no secrets"
         run: |
           docker image inspect "$IMAGE:$SHORT" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | grep -qx "$SHA"
@@ -78,6 +103,13 @@ jobs:
             echo "Secret-like file under /app"; exit 1
           fi
           docker image inspect "$IMAGE:$SHORT" --format 'Image size: {{.Size}} bytes'
+
+      - name: "Check: the image carries third-party licences (Module 7)"
+        run: |
+          docker run --rm --entrypoint cat "$IMAGE:$SHORT" /app/licenses/THIRD-PARTY.txt | tee third-party.txt
+          grep -qi "cpsolver" third-party.txt && grep -qi "lesser general public" third-party.txt
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'ls /app/licenses /app/licenses/texts | head -40'
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'test -s /app/licenses/THIRD_PARTY_NOTICES.md'
 
       - name: Save the image
         run: |

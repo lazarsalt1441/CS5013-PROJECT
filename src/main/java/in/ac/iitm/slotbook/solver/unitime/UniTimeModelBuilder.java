@@ -25,7 +25,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * Translates a {@link TimetableProblem} into a UniTime (cpsolver) course timetabling model.
@@ -77,6 +79,12 @@ public final class UniTimeModelBuilder {
 
     /** Result of a build: the model plus the lookup from course id to its lecture variable. */
     public record Built(TimetableModel model, Map<String, Lecture> lectures, Map<Long, String> slotByPatternId) {
+        /** Read-only copies of the lookups, in their original order (SpotBugs EI_EXPOSE_REP). */
+        public Built {
+            lectures = Collections.unmodifiableMap(new LinkedHashMap<>(lectures));
+            slotByPatternId = Collections.unmodifiableMap(new LinkedHashMap<>(slotByPatternId));
+        }
+
         /** IITM slot id of a placement produced by this model. */
         public String slotOf(Placement placement) {
             return slotByPatternId.get(placement.getTimeLocation().getDatePatternId());
@@ -99,7 +107,7 @@ public final class UniTimeModelBuilder {
             List<RoomLocation> roomLocations = new ArrayList<>();
             RoomConstraint roomConstraint = null;
             if (course.hasRoom()) {
-                roomConstraint = rooms.computeIfAbsent(course.room().toUpperCase(), name -> {
+                roomConstraint = rooms.computeIfAbsent(course.room().toUpperCase(Locale.ROOT), name -> {
                     RoomConstraint constraint = new RoomConstraint(
                             nextId++, course.room(), null, UNLIMITED_ROOM_SIZE, null, null, null, true, true);
                     model.addConstraint(constraint);

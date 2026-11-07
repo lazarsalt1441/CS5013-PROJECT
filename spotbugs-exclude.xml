@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SpotBugs suppressions. Each one is a finding we read and judged safe, with the reason.
+  Everything else SpotBugs reports fails the quality build.
+-->
+<FindBugsFilter>
+  <!-- UniTimeModelBuilder.Built hands the cpsolver TimetableModel to UniTimeTimetableSolver,
+       which must mutate it (that is how cpsolver searches). Copying it is not possible and
+       would defeat the purpose. The lookup maps are defensively copied in the record. -->
+  <Match>
+    <Class name="in.ac.iitm.slotbook.solver.unitime.UniTimeModelBuilder$Built"/>
+    <Field name="model"/>
+    <Or>
+      <Bug pattern="EI_EXPOSE_REP"/>
+      <Bug pattern="EI_EXPOSE_REP2"/>
+    </Or>
+  </Match>
+  <!-- best is an Assignment<Lecture, Placement>; the cast is the one javac inserts for generics,
+       not an unchecked downcast in our code. -->
+  <Match>
+    <Class name="in.ac.iitm.slotbook.solver.unitime.UniTimeTimetableSolver"/>
+    <Method name="solve"/>
+    <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+  </Match>
+</FindBugsFilter>
