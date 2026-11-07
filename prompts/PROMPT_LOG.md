@@ -23,7 +23,8 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P015 | v3: replace Google Sheets with Postgres (Neon), add grade-card prerequisite warnings, docs_v3 and man page | Accepted (PR #1) | `ebb9c28`..current |
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
 | P017 | Add stress tests for the portal and the prerequisite checker | Accepted (PR #4) | `d2319e6`..current |
-| P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | In progress | see P019 |
+| P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | Accepted | see P019 |
+| P020 | Make the admin page's "Generate slotbook" button work: a solver web service in the Docker image | In progress | see P020 |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -815,3 +816,41 @@ Accepted on 6 November 2026 after five CI rounds on PR #7; the last is all green
 - Java tests: 75 to 93.
 
 Rejected along the way: two CI failures were my own compile errors (a stray brace and a missing import), and one property I wrote was wrong for students with no grade card. All three were caught by CI or by the property run, not by reading. Property tests are now type-checked locally against stub APIs before pushing.
+
+## P020 - Solver web service for "Generate slotbook"
+
+Written on 7 November 2026.
+
+### Original prompt
+
+> Make the button work. [...] add a small web server around the solver to the Docker image (about 150 lines of Java, no new libraries), with tests; deploy that image on a free host that runs Docker (e.g. Render) [...]; put the host's address in Vercel as `SOLVER_API_URL`. [...] lets do this
+
+### CoSTAR prompt
+
+**Context:** The portal's admin page has a "Generate slotbook" button that POSTs the current submissions to `SOLVER_API_URL` and publishes the reply (`portal/api/solver.js`). No such service exists, so the admin downloads CSVs, runs the CLI and uploads the outputs by hand. The portal's course catalog is generated from `data/feasible`. The final demo and submission are the next day.
+
+**Objective:** A small HTTP service in the existing Docker image that accepts the portal's payload, merges the portal submissions onto `data/feasible` (a person's portal rows replace their sample rows, as `scripts/live-demo.sh` does), solves with the existing service layer and returns the slotbook and explanations in the shape `validatePublication` accepts.
+
+**Style:** JDK only (`com.sun.net.httpserver`), no new dependencies. Same solver, validator and explanation code as the CLI, so the website and the CLI cannot disagree.
+
+**Tone:** Conservative; this is added the night before submission.
+
+**Audience:** The admin pressing the button during the demo; evaluators reading the code.
+
+**Response:** `server` package, tests, Docker entrypoint for server mode, a CI smoke test of the container, Vercel function time limit, docs and deployment steps.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not change the CLI, solver, validator or the portal's request format; the CLI default `docker run` must behave exactly as before.
+- Do not add a JSON or web library (Module 9: every new dependency is supply-chain risk).
+- Do not run the service without a key in production: when `SOLVER_API_KEY` is set, every solve needs `Authorization: Bearer <key>`, compared in constant time.
+- Do not trust the payload: limit the body size, reject CSV headers that differ from the dataset's, and run one solve at a time.
+- Do not leave temporary datasets behind.
+- Do not claim it works on the host until a real request has gone through it.
+
+### Acceptance
+
+(Filled in after CI.)
+
