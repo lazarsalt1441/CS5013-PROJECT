@@ -48,7 +48,7 @@ submission commit, in the viva.%
 
 IITM departments assign lecture slots by hand-editing last year's slotbook, so nobody can say why a course got its slot.
 
-We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The admin's ``Generate slotbook'' button runs the engine as a web service and publishes the result. The UniTime solver, the portal and prerequisite warnings were added after the proposal. \todo{check this sentence against your proposal}
+We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The admin's ``Generate slotbook'' button runs the engine as a web service and publishes the result. The portal and prerequisite warnings were added after the proposal.
 
 \textbf{Stakeholder verdict: Accepted} (final demo on Friday, 6 November 2026).
 
