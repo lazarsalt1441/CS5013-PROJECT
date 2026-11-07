@@ -72,6 +72,16 @@ class SolverServerTest {
     }
 
     @Test
+    void hostProbesWithHeadGetAnEmptyOk() throws Exception {
+        for (String path : List.of("/", "/health")) {
+            HttpResponse<String> response = CLIENT.send(HttpRequest.newBuilder(base.resolve(path))
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody()).build(), HttpResponse.BodyHandlers.ofString());
+            assertEquals(200, response.statusCode(), path);
+            assertEquals("", response.body(), path);
+        }
+    }
+
+    @Test
     void solvingNeedsTheKey() throws Exception {
         assertEquals(401, post("{" + EMPTY_PORTAL + "}", null).statusCode());
         assertEquals(401, post("{" + EMPTY_PORTAL + "}", "wrong").statusCode());
