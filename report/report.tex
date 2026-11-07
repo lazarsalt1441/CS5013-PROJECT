@@ -30,8 +30,8 @@
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
   \item[Team Name:]         TT generator
   \item[Repository:]      \url{https://github.com/lazarsalt1441/CS5013-PROJECT}
-  \item[Submission commit:] \texttt{\todo{SHA of the final-submission tag}} (date: \texttt{2026-11-06}).
-  \item[Docker image:]    \todo{Google Drive link to slotbook-\textless sha\textgreater.tar.gz}
+  \item[Submission commit:] \texttt{33789f4}, tagged \texttt{final-submission} (date: \texttt{2026-11-08}).
+  \item[Docker image:]    \todo{Google Drive link to slotbook-33789f4.tar.gz}
   \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable from course and preference data without breaking any hard rule, and explains why each course got its slot.}
 \end{description}
 
@@ -103,13 +103,12 @@ Easy to build with, but even easier to get lost: build features slowly and in st
 
 \textbf{Build and run.}
 \begin{verbatim}
-  docker load -i slotbook-<sha>.tar.gz
-  docker run --rm slotbook:<sha>        # solves data/feasible, prints the slotbook
+  docker load -i slotbook-33789f4.tar.gz
+  docker run --rm slotbook:33789f4        # solves data/feasible, prints the slotbook
   mkdir -p out && docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/out:/out" \
-      slotbook:<sha> --input data/demo-showcase --output /out   # CSVs land in ./out
+      slotbook:33789f4 --input data/demo-showcase --output /out   # CSVs land in ./out
 \end{verbatim}
 \vspace{-0.5em}
-\todo{replace <sha> with the 7-character SHA of the final-submission commit}
 The image holds the engine, CLI and solver web service (\texttt{docker run ... serve}); the portal runs on Vercel.
 
 \textbf{Where the artefact lives after the course.}
@@ -127,7 +126,7 @@ Both run on a team member\'s accounts, to be handed over to the institute admini
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Optimality.} UniTime is a heuristic: on 3 of 13 generated scenarios it finished 1--8 points above the CP-SAT optimum.
   \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified. It is not fit for real student data until IITM login exists.
-  \item \textbf{Fixed rooms, one PDF layout.} Rooms are fixed per course; capacity is not modelled. The grade-card parser reads only the IITM PDF's text layout, so scanned or photographed cards are rejected.
+  \item \textbf{Fixed rooms.} Rooms are fixed per course; capacity is not modelled.
 \end{itemize}
 
 \section{Individual contributions}
