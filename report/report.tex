@@ -88,7 +88,7 @@ Java paths are under \path{src/main/java/in/ac/iitm/slotbook/}.
 \section{AI-usage summary}
 
 \textbf{Tools used.}
-Claude Code \todo{\%} (engine, portal, tests, docs); ChatGPT \todo{\%} (Vercel and Neon deployment). \todo{other tools?}
+Claude Code about 50\% (engine, portal, tests, docs); ChatGPT about 50\% (design, Vercel, Neon and Render setup).
 
 \textbf{One substantive help.}
 Claude Code replaced the Google Sheets backend with a Postgres store, numbered migrations and database-backed tests (\path{portal/api/_store.js}, \texttt{7591cca}); it shipped near as-is once 4 integration tests passed on a real Postgres 16.
@@ -97,7 +97,7 @@ Claude Code replaced the Google Sheets backend with a Postgres store, numbered m
 The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (a specification-vs-implementation gap, Module 5); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
 
 \textbf{Net-effect sentence.}
-\todo{your honest verdict}. For reference, \texttt{docs\_v3/DEBUGGING.md} records 14 faults in AI-assisted code, every one caught by a test or a tool rather than by reading the code.
+Easy to build with, but even easier to get lost: build features slowly and in stages, never in one shot. For reference, \texttt{docs\_v3/DEBUGGING.md} records 14 faults in AI-assisted code, every one caught by a test or a tool rather than by reading the code.
 
 \section{Deployment and stakeholder handoff}
 
@@ -114,12 +114,12 @@ The image holds the engine, CLI and solver web service (\texttt{docker run ... s
 
 \textbf{Where the artefact lives after the course.}
 Code on GitHub; portal at \url{https://cs5013-project-portal.vercel.app}; solver service at \url{https://slotbook-solver.onrender.com}.
-\todo{who keeps it running after the course?}
+Both run on a team member\'s accounts, to be handed over to the institute administration.
 
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
 \textit{``The project works as per the expectations given. To integrate it with IITM's data, the admin would need to make some modifications to get data from their databases, but this is good enough from your side.''\\
--- \todo{Name, role}, 6 November 2026.}
+-- Meghana Nasre, in charge of the slotbook, CS Department, 6 November 2026.}
 \end{quote}
 
 \section{Known limitations}
@@ -133,8 +133,8 @@ Code on GitHub; portal at \url{https://cs5013-project-portal.vercel.app}; solver
 \section{Individual contributions}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Nishanth S:} v1 engine (CP-SAT model, explanations, CLI, JavaFX view, CI); the Vercel preference portal on Google Sheets; the mid-evaluation showcase and pack. \todo{confirm}
-  \item \textbf{Sparsh Gupta:} testing framework (oracles, generated scenarios); v2 UniTime wrapper and real IITM time grid; the prompt log; v3 Postgres backend, prerequisite warnings, stress, property and mutation tests, solver service, docs. \todo{confirm}
+  \item \textbf{Nishanth S:} v1 (CP-SAT model, explanations, CLI, JavaFX view, test oracles, CI) and v3 (Postgres, prerequisite warnings, stress, property and mutation tests, solver service, Docker).
+  \item \textbf{Sparsh Gupta:} v2 (UniTime solver, real IITM time grid, Sheets-backed portal) and the mid-evaluation showcase.
 \end{itemize}
 
 \end{document}
