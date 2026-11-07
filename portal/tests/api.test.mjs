@@ -100,7 +100,7 @@ test("admin rejects unknown actions, including inherited object keys", async () 
   assert.equal((await call(admin, request("POST", { action: "constructor" }, ADMIN))).status, 400);
 });
 
-test("published results are served publicly with a short cache", async () => {
+test("published results are served publicly and never cached", async () => {
   await freshDatabase();
   const publish = await call(admin, request("POST", {
     action: "publish_results",
@@ -110,7 +110,7 @@ test("published results are served publicly with a short cache", async () => {
   const { status, body, headers } = await call(results, request("GET"));
   assert.equal(status, 200);
   assert.equal(body.slotbook[0].assigned_slot, "F");
-  assert.match(headers["cache-control"], /max-age=30/);
+  assert.equal(headers["cache-control"], "no-store", "a new publication must show on the next refresh");
 });
 
 test("clear_demo_data removes submissions", async () => {

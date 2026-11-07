@@ -108,6 +108,9 @@ public final class DatasetLoader {
     }
 
     private static final class RowParseException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
         private RowParseException(Exception cause) {
             super(cause);
         }

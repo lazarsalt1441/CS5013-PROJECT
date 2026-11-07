@@ -102,6 +102,41 @@ If either implementation changes the rule, a code or a message, one of the three
 
 Count: 51 `@Test` methods + 10 seeds + 14 scenarios = **75**.
 
+### Property-based tests (jqwik, new in P019)
+
+| Class | Property | Tries |
+|---|---|---|
+| `model.SlotPropertiesTest` | `overlapMatchesTheIntervalDefinition`: overlap equals an independent interval oracle | 3,000 |
+| | `timesOffTheFiveMinuteGridAreRejected` | 1,000 |
+| | `overlapIsSymmetric` | 1,000 |
+| | `everySlotOverlapsItself` | 500 |
+| `io.CsvPropertiesTest` | Any row written as RFC 4180 parses back to the same values (commas, quotes, newlines) | 3,000 |
+| `validation.PrerequisiteCheckerPropertiesTest` | Warnings only name ranked courses; passing another course never adds `MISSING`; a failing grade never removes it | 1,000 each |
+
+New example tests from mutation testing (P019): `InputValidatorTest` (6), `model.SlotAndTimeGridTest` (3, including the `tr-TR` locale test), `CsvSupportTest` (1). The Java suite now has **93 tests** (113 with the P020 solver-service tests).
+
+### Solver service (`server` package, new in P020)
+
+| Class | Tests | What they show |
+|---|---|---|
+| `JsonTest` | 5 | The portal payload parses; every value kind; strings with commas, quotes, newlines and control characters round-trip; malformed input and deep nesting are rejected with a position |
+| `PortalDatasetTest` | 7 | An instructor's or student's portal rows replace only their sample rows; no portal rows leaves every file byte-identical; prerequisite files only when they have rows; wrong headers and non-string fields are rejected |
+| `SolverServerTest` | 8 | Over real HTTP with both real solvers: `/health` needs no key; `/solve` needs the exact key; with no portal rows CP-SAT reaches objective 20, the CLI's result on `data/feasible`; a professor's penalty of 100 on EE1101's slot moves EE1101; the default solver is UniTime; an unknown course is a 422 naming it; malformed requests are 400 |
+
+The Docker job also starts the image with `serve` and with `SLOTBOOK_SERVE=1`, checks the key is enforced, and sends a real portal payload. Before pushing, the package was compiled with `-Xlint:all -Werror` and its 20 tests run locally against a stand-in solver (the real solvers' jars cannot be downloaded in the authoring sandbox); CI runs them with the real solvers.
+
+## Quality job (`.github/workflows/quality.yml`, new in P019)
+
+| Tool | What it checks | Gate | Result |
+|---|---|---|---|
+| `javac -Xlint:all -Werror` | Compiler warnings | Any warning fails | 0 |
+| SpotBugs (effort Max, threshold Low) | Static bugs | Any finding fails | 10 found, 0 left ([DEBUGGING §14](DEBUGGING.md)) |
+| JaCoCo | Line and branch coverage | Reported only | 79.3% lines, 75.7% branches (CLI and JavaFX view not unit-tested) |
+| PIT | Mutation score on validation, slot, grid and CSV code | Below 97% fails | 91.0% at first, now 98.7% (151 of 153; 2 equivalent, [§15](DEBUGGING.md)) |
+| `license-maven-plugin` | Licence of every runtime dependency | Report | 16 dependencies; table in `THIRD_PARTY_NOTICES.md` |
+| `npm audit --omit=dev` | Known vulnerabilities in shipped portal packages | Moderate or above fails | 0 |
+| `node --test --experimental-test-coverage` | Portal coverage of `api/` and `db/` | Reported only | 96.4% lines, 90.6% branches |
+
 ## Portal (`npm test`, 57 tests)
 
 ### `tests/validation.test.mjs` (10, new in v3)

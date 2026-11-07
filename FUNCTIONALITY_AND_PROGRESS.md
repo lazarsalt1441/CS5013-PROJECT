@@ -54,7 +54,7 @@ Status: **Done** means covered by automated tests and a recorded run. **Partial*
 | Professor slot-penalty form with reasons | Done | API and validation tests; browser run |
 | Admin dashboard: counts, previews, CSV exports, reset | Done | API tests; browser run |
 | Exports matching the Java CSV schemas exactly, plus `prerequisites.csv` and `completed_courses.csv` | Done | Contract tests; `npm run check` header check |
-| Publish results manually or through an optional solver API | Done | Solver and publication tests |
+| Publish results manually, or with one click through the solver service in the Docker image (P020) | Done | Solver and publication tests; `SolverServerTest`; Docker CI |
 | Public results page, latest run, earlier runs kept | Done | `public results show only the latest published run` |
 | Postgres storage with migrations, constraints and transactions | Done | 8 store tests; 4 integration tests on Postgres 16 |
 | Student and professor authentication | Planned | Demonstration only; the UI says so |
@@ -93,6 +93,7 @@ Status: **Done** means covered by automated tests and a recorded run. **Partial*
 | v2 | 52 | 7 | Every scenario solved by both solvers; portal contract tests with a mocked Apps Script |
 | v3 | 71 | 56 + 4 integration | Database-backed contract tests, grade-card parser, prerequisite parity, real-Postgres integration |
 | v3 stress (P017) | 75 | 57 + 4 integration + 14 stress | Seeded fuzzing, volume and scaling checks, 300-way concurrency on real Postgres; found 3 faults |
+| Course quality tools (P019) | 93 | same | jqwik properties, SpotBugs, JaCoCo, PIT (98.7% of mutants killed), `npm audit`; found 2 faults |
 
 CI on `main` runs:
 - both test suites, with a Postgres 16 service for the integration tests;

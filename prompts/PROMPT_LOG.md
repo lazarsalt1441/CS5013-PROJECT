@@ -24,6 +24,8 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
 | P017 | Add stress tests for the portal and the prerequisite checker | Accepted (PR #4) | `d2319e6`..current |
 | P018 | Design document written as the project's upfront design | Accepted | see P018 |
+| P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | Accepted | see P019 |
+| P020 | Make the admin page's "Generate slotbook" button work: a solver web service in the Docker image | Accepted (PR #8) | see P020 |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -808,3 +810,97 @@ Added at review:
 
 - Every requirement in the traceability appendix points to an existing module, test or document; links checked.
 - Decisions match the prompt log entries they cite.
+
+## P019 - Lecture practices not yet applied
+
+Written on 6 November 2026.
+
+### Original prompt
+
+> these are the lectures, put the things we followed, if we havent, try that out
+
+(The course slides for Modules 1-7 and 9 were supplied.)
+
+### CoSTAR prompt
+
+**Context:** The final report must cite course concepts with file paths and commits. A review of the slides against the repository found that most practices are already in use (CoSTAR and negative prompting; git, Conventional Commits and CI; structured debugging; fuzzing; docs as code; secrets in environment variables). Several practices the slides name explicitly are not yet in use: JaCoCo coverage, PIT mutation testing and jqwik property-based tests (Module 5); SpotBugs with the "static analyser first, then LLM, smallest patch" loop (Module 4); dependency auditing (Module 9); licence and provenance notices for redistributed code (Module 7).
+
+**Objective:** Apply each of those practices to this project, act on what they find, and record the evidence. Do not just switch the tools on.
+
+**Style:** Use the tools the slides name. Each tool runs in CI. Every finding is triaged as fixed or justified.
+
+**Tone:** Report the numbers as measured, including unflattering ones.
+
+**Audience:** CS5013 evaluators.
+
+**Response:** pom.xml plugins and a `quality` CI job; jqwik properties; tests that kill surviving mutants; SpotBugs fixes; `npm audit` in CI; `THIRD_PARTY_NOTICES.md` shipped in the Docker image; docs updated.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not add an LLM to the product to tick off Module 6; the design keeps models out of the decision path (NG1).
+- Do not change behaviour while fixing static-analysis findings unless the finding is a real bug; prefer the smallest patch (Module 4).
+- Do not chase a coverage percentage; use mutation results to judge test strength (Module 5).
+- Do not suppress a finding without a written reason.
+- Do not guess licences; read them from package metadata.
+- Do not slow the default `mvn test`; mutation testing runs in its own CI job.
+
+### Acceptance
+
+Accepted on 6 November 2026 after five CI rounds on PR #7; the last is all green.
+
+- jqwik found a real fault on its first run (touching off-grid meetings counted as a clash); fixed by rejecting off-grid times (DEBUGGING §13).
+- SpotBugs: 10 findings, of which 3 were a real locale bug (Turkish `I`); 0 remain, and new findings fail CI (§14).
+- PIT: 91.0% to 98.7% (151 of 153); the 2 survivors are equivalent and documented (§15); the build fails below 97%.
+- JaCoCo: 79.3% lines, 75.7% branches. Portal coverage: 96.4% lines, 90.6% branches. `npm audit`: 0 vulnerabilities.
+- Licences: 16 runtime dependencies, read from the generated report; LGPL cpsolver ships as a separate replaceable jar; licence texts are in the Docker image under `/app/licenses`.
+- Java tests: 75 to 93.
+
+Rejected along the way: two CI failures were my own compile errors (a stray brace and a missing import), and one property I wrote was wrong for students with no grade card. All three were caught by CI or by the property run, not by reading. Property tests are now type-checked locally against stub APIs before pushing.
+
+## P020 - Solver web service for "Generate slotbook"
+
+Written on 7 November 2026.
+
+### Original prompt
+
+> Make the button work. [...] add a small web server around the solver to the Docker image (about 150 lines of Java, no new libraries), with tests; deploy that image on a free host that runs Docker (e.g. Render) [...]; put the host's address in Vercel as `SOLVER_API_URL`. [...] lets do this
+
+### CoSTAR prompt
+
+**Context:** The portal's admin page has a "Generate slotbook" button that POSTs the current submissions to `SOLVER_API_URL` and publishes the reply (`portal/api/solver.js`). No such service exists, so the admin downloads CSVs, runs the CLI and uploads the outputs by hand. The portal's course catalog is generated from `data/feasible`. The final demo and submission are the next day.
+
+**Objective:** A small HTTP service in the existing Docker image that accepts the portal's payload, merges the portal submissions onto `data/feasible` (a person's portal rows replace their sample rows, as `scripts/live-demo.sh` does), solves with the existing service layer and returns the slotbook and explanations in the shape `validatePublication` accepts.
+
+**Style:** JDK only (`com.sun.net.httpserver`), no new dependencies. Same solver, validator and explanation code as the CLI, so the website and the CLI cannot disagree.
+
+**Tone:** Conservative; this is added the night before submission.
+
+**Audience:** The admin pressing the button during the demo; evaluators reading the code.
+
+**Response:** `server` package, tests, Docker entrypoint for server mode, a CI smoke test of the container, Vercel function time limit, docs and deployment steps.
+
+### Negative prompt / constraints
+
+Added at review:
+
+- Do not change the CLI, solver, validator or the portal's request format; the CLI default `docker run` must behave exactly as before.
+- Do not add a JSON or web library (Module 9: every new dependency is supply-chain risk).
+- Do not run the service without a key in production: when `SOLVER_API_KEY` is set, every solve needs `Authorization: Bearer <key>`, compared in constant time.
+- Do not trust the payload: limit the body size, reject CSV headers that differ from the dataset's, and run one solve at a time.
+- Do not leave temporary datasets behind.
+- Do not claim it works on the host until a real request has gone through it.
+
+### Acceptance
+
+Accepted in code on 7 November 2026 after two CI rounds on PR #8; the second is all green. Live hosting is the team's step (Render and Vercel settings in `portal/README.md`).
+
+- 20 new Java tests (`JsonTest` 5, `PortalDatasetTest` 7, `SolverServerTest` 8); the suite has 113, all passing. Before pushing, they were compiled with `-Xlint:all -Werror` and run locally against a stand-in solver, because the real solvers' jars cannot be downloaded in the authoring sandbox.
+- Over HTTP with the real CP-SAT solver, no portal rows gives objective 20, the same as the CLI on `data/feasible`; a professor's penalty of 100 on EE1101's slot moves EE1101.
+- The Docker job starts the image with `serve` and with `SLOTBOOK_SERVE=1`, checks that a missing key gets 401, and sends a real portal payload: OPTIMAL, objective 20, 19 courses. The CLI checks in the same job are unchanged and pass.
+- SpotBugs: 1 new finding (possible null from `Path.getFileName()`), fixed with a guard; 0 remain. PIT is unchanged at 98.7%. JaCoCo rose to 81.4% lines and 76.8% branches.
+- Corrected at review: two of my own tests were wrong, not the code. One counted a trailing blank line in the sample file as a row; the other showed that a header-only upload rewrote the file without its blank line. The second led to a code change: an upload with no rows now leaves the file byte-identical.
+- Correction to my own demo advice: in the stand-in run EE1101 sat in slot E, but the real solver puts it in slot A on `data/feasible`. The demo must penalise the slot shown on the results page, not a slot assumed in advance.
+
+

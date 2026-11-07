@@ -1,0 +1,127 @@
+name: Docker image
+
+# Builds the engine image, tags it with the commit SHA, checks it the way the
+# course TA will (docker run with no setup; the report's commands; no secrets
+# in the image), and saves it as a downloadable .tar.gz artifact.
+
+on:
+  push:
+    branches: [main]
+    tags: [final-submission]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      IMAGE: slotbook
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Name the image after the commit
+        run: |
+          echo "SHA=${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "SHORT=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: |
+          docker build --build-arg GIT_SHA="$SHA" \
+            -t "$IMAGE:$SHORT" -t "$IMAGE:$SHA" -t "$IMAGE:latest" .
+          docker image ls "$IMAGE"
+
+      - name: "Check: docker run with no arguments solves the sample dataset"
+        run: |
+          docker run --rm "$IMAGE:$SHORT" | tee run-default.txt
+          grep -q "Status: FEASIBLE\|Status: OPTIMAL" run-default.txt
+          grep -q "^COURSE   SLOT" run-default.txt
+
+      - name: "Check: the report's commands work as written"
+        run: |
+          docker run --rm "$IMAGE:$SHORT" --help | grep -q -- "--prerequisites"
+          docker run --rm "$IMAGE:$SHORT" --input data/feasible --solver cpsat --output /tmp/out | tee run-cpsat.txt
+          grep -q "Objective: 20" run-cpsat.txt
+          docker run --rm "$IMAGE:$SHORT" --input data/prerequisite-warnings --output /tmp/out | tee run-prereq.txt
+          grep -q "Prerequisite warnings: 22" run-prereq.txt
+          mkdir -p out
+          docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/out:/out" "$IMAGE:$SHORT" \
+            --input data/demo-showcase --output /out
+          test -s out/generated_slotbook.csv && test -s out/assignment_explanations.csv
+          head -3 out/generated_slotbook.csv
+
+      - name: "Check: invalid input fails cleanly with exit status 1"
+        run: |
+          set +e
+          docker run --rm "$IMAGE:$SHORT" --input data/infeasible-fixed-conflict --output /tmp/out
+          code=$?
+          set -e
+          test "$code" -eq 1
+
+      - name: "Check: solver web service answers like the portal expects (P020)"
+        run: |
+          docker run -d --name solver -p 18080:8080 -e SOLVER_API_KEY=ci-key "$IMAGE:$SHORT" serve
+          for i in $(seq 1 30); do curl -sf localhost:18080/health && break; sleep 1; done
+          echo
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:18080/solve -d '{}')" = 401
+          curl -s -X POST localhost:18080/solve -H "Authorization: Bearer ci-key" \
+            -d '{"solver":"cpsat","instructor_preferences_csv":"instructor,slot,penalty,reason\nPradeep K,E,100,Department meeting\n"}' \
+            | tee solve.json | head -c 400; echo
+          python3 - <<'PY'
+          import json
+          reply = json.load(open("solve.json"))
+          assert reply["ok"] is True, reply
+          assert reply["merged_instructor_rows"] == 1, reply
+          slots = {row["course_id"]: row["assigned_slot"] for row in reply["slotbook"]}
+          assert len(reply["slotbook"]) == len(reply["explanations"]) > 0
+          print("EE1101 ->", slots["EE1101"], "objective", reply["objective"])
+          PY
+          docker logs solver
+          docker rm -f solver
+          docker run -d --name solver2 -p 18081:8080 -e SLOTBOOK_SERVE=1 "$IMAGE:$SHORT"
+          for i in $(seq 1 30); do curl -sf localhost:18081/health && break; sleep 1; done
+          curl -sf localhost:18081/health
+          docker rm -f solver2
+
+      - name: "Check: image metadata and no secrets"
+        run: |
+          docker image inspect "$IMAGE:$SHORT" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' | grep -qx "$SHA"
+          docker image inspect "$IMAGE:$SHORT" --format '{{.Config.User}}' | grep -qx slotbook
+          if docker image inspect "$IMAGE:$SHORT" --format '{{json .Config.Env}}' | grep -iE 'password|secret|token|api_?key|database_url'; then
+            echo "Image environment contains something that looks like a secret"; exit 1
+          fi
+          # Scan only what this project adds (/app). The base image's public CA
+          # certificates under /etc/ssl/certs are *.pem files but hold nothing private.
+          container=$(docker create "$IMAGE:$SHORT")
+          docker export "$container" | tar -t | grep '^app/' > app-files.txt
+          docker rm "$container" > /dev/null
+          echo "Files under /app: $(wc -l < app-files.txt)"; grep -v '^app/lib/' app-files.txt
+          if grep -iE '(^|/)\.env|id_rsa|\.pem$|\.key$|credentials|secret' app-files.txt; then
+            echo "Secret-like file under /app"; exit 1
+          fi
+          docker image inspect "$IMAGE:$SHORT" --format 'Image size: {{.Size}} bytes'
+
+      - name: "Check: the image carries third-party licences (Module 7)"
+        run: |
+          docker run --rm --entrypoint cat "$IMAGE:$SHORT" /app/licenses/THIRD-PARTY.txt | tee third-party.txt
+          grep -qi "cpsolver" third-party.txt && grep -qi "lesser general public" third-party.txt
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'ls /app/licenses /app/licenses/texts | head -40'
+          docker run --rm --entrypoint sh "$IMAGE:$SHORT" -c 'test -s /app/licenses/THIRD_PARTY_NOTICES.md'
+
+      - name: Save the image
+        run: |
+          docker save "$IMAGE:$SHORT" "$IMAGE:$SHA" "$IMAGE:latest" | gzip > "slotbook-$SHORT.tar.gz"
+          ls -lh "slotbook-$SHORT.tar.gz"
+          sha256sum "slotbook-$SHORT.tar.gz" | tee "slotbook-$SHORT.tar.gz.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slotbook-docker-${{ env.SHORT }}
+          path: |
+            slotbook-${{ env.SHORT }}.tar.gz
+            slotbook-${{ env.SHORT }}.tar.gz.sha256
+          retention-days: 90
+          compression-level: 0

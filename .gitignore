@@ -19,3 +19,4 @@ docs_design/*.log
 docs_design/*.fls
 docs_design/*.fdb_latexmk
 docs_design/*.out
+demo-live/
