@@ -212,6 +212,9 @@ mvn exec:java -Dexec.args="--input data/prerequisite-warnings --output output/pr
 # Files downloaded from the portal admin page
 mvn exec:java -Dexec.args="--input data/feasible --prerequisites ~/Downloads/prerequisites.csv --completed-courses ~/Downloads/completed_courses.csv"
 
+# Live demo: merge portal downloads (in ~/Downloads) into data/feasible and solve
+sh scripts/live-demo.sh
+
 # Replay a generated test scenario (after mvn test)
 mvn exec:java -Dexec.args="--input target/generated-scenarios/random-3"
 ```
