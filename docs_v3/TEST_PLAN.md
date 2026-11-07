@@ -115,6 +115,16 @@ Count: 51 `@Test` methods + 10 seeds + 14 scenarios = **75**.
 
 New example tests from mutation testing (P019): `InputValidatorTest` (6), `model.SlotAndTimeGridTest` (3, including the `tr-TR` locale test), `CsvSupportTest` (1). The Java suite now has **93 tests**.
 
+### Solver service (`server` package, new in P020)
+
+| Class | Tests | What they show |
+|---|---|---|
+| `JsonTest` | 5 | The portal payload parses; every value kind; strings with commas, quotes, newlines and control characters round-trip; malformed input and deep nesting are rejected with a position |
+| `PortalDatasetTest` | 7 | An instructor's or student's portal rows replace only their sample rows; no portal rows leaves every file byte-identical; prerequisite files only when they have rows; wrong headers and non-string fields are rejected |
+| `SolverServerTest` | 8 | Over real HTTP with both real solvers: `/health` needs no key; `/solve` needs the exact key; with no portal rows CP-SAT reaches objective 20, the CLI's result on `data/feasible`; a professor's penalty of 100 on EE1101's slot moves EE1101; the default solver is UniTime; an unknown course is a 422 naming it; malformed requests are 400 |
+
+The Docker job also starts the image with `serve` and with `SLOTBOOK_SERVE=1`, checks the key is enforced, and sends a real portal payload. Before pushing, the package was compiled with `-Xlint:all -Werror` and its 20 tests run locally against a stand-in solver (the real solvers' jars cannot be downloaded in the authoring sandbox); CI runs them with the real solvers.
+
 ## Quality job (`.github/workflows/quality.yml`, new in P019)
 
 | Tool | What it checks | Gate | Result |

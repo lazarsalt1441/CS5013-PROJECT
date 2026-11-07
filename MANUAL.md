@@ -212,6 +212,10 @@ mvn exec:java -Dexec.args="--input data/prerequisite-warnings --output output/pr
 # Files downloaded from the portal admin page
 mvn exec:java -Dexec.args="--input data/feasible --prerequisites ~/Downloads/prerequisites.csv --completed-courses ~/Downloads/completed_courses.csv"
 
+# Solver web service for the portal's "Generate slotbook" button (see portal/README.md)
+mvn -q exec:java -Dexec.mainClass=in.ac.iitm.slotbook.server.SolverServer   # port 8080
+docker run -p 8080:8080 -e SOLVER_API_KEY=secret IMAGE serve
+
 # Live demo: merge portal downloads (in ~/Downloads) into data/feasible and solve
 sh scripts/live-demo.sh
 
