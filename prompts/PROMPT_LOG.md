@@ -24,7 +24,7 @@ From P006 onward each entry also keeps the **original prompt** word for word as 
 | P016 | Document the tool's functionality and project progress | Accepted | this commit |
 | P017 | Add stress tests for the portal and the prerequisite checker | Accepted (PR #4) | `d2319e6`..current |
 | P019 | Apply lecture practices not yet used: coverage, mutation, property-based testing, static analysis, dependency audit, licence notices | Accepted | see P019 |
-| P020 | Make the admin page's "Generate slotbook" button work: a solver web service in the Docker image | In progress | see P020 |
+| P020 | Make the admin page's "Generate slotbook" button work: a solver web service in the Docker image | Accepted (PR #8) | see P020 |
 
 P006–P011 were all written on 10 October 2026. In order of use they ran P007, P008, P009, P010, P011, P006. P006 keeps its number because commit `3c9d6cb` refers to it. P012 was added on 11 October 2026.
 
@@ -852,5 +852,13 @@ Added at review:
 
 ### Acceptance
 
-(Filled in after CI.)
+Accepted in code on 7 November 2026 after two CI rounds on PR #8; the second is all green. Live hosting is the team's step (Render and Vercel settings in `portal/README.md`).
+
+- 20 new Java tests (`JsonTest` 5, `PortalDatasetTest` 7, `SolverServerTest` 8); the suite has 113, all passing. Before pushing, they were compiled with `-Xlint:all -Werror` and run locally against a stand-in solver, because the real solvers' jars cannot be downloaded in the authoring sandbox.
+- Over HTTP with the real CP-SAT solver, no portal rows gives objective 20, the same as the CLI on `data/feasible`; a professor's penalty of 100 on EE1101's slot moves EE1101.
+- The Docker job starts the image with `serve` and with `SLOTBOOK_SERVE=1`, checks that a missing key gets 401, and sends a real portal payload: OPTIMAL, objective 20, 19 courses. The CLI checks in the same job are unchanged and pass.
+- SpotBugs: 1 new finding (possible null from `Path.getFileName()`), fixed with a guard; 0 remain. PIT is unchanged at 98.7%. JaCoCo rose to 81.4% lines and 76.8% branches.
+- Corrected at review: two of my own tests were wrong, not the code. One counted a trailing blank line in the sample file as a row; the other showed that a header-only upload rewrote the file without its blank line. The second led to a code change: an upload with no rows now leaves the file byte-identical.
+- Correction to my own demo advice: in the stand-in run EE1101 sat in slot E, but the real solver puts it in slot A on `data/feasible`. The demo must penalise the slot shown on the results page, not a slot assumed in advance.
+
 

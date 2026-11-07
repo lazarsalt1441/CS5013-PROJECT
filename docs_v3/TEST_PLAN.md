@@ -113,7 +113,7 @@ Count: 51 `@Test` methods + 10 seeds + 14 scenarios = **75**.
 | `io.CsvPropertiesTest` | Any row written as RFC 4180 parses back to the same values (commas, quotes, newlines) | 3,000 |
 | `validation.PrerequisiteCheckerPropertiesTest` | Warnings only name ranked courses; passing another course never adds `MISSING`; a failing grade never removes it | 1,000 each |
 
-New example tests from mutation testing (P019): `InputValidatorTest` (6), `model.SlotAndTimeGridTest` (3, including the `tr-TR` locale test), `CsvSupportTest` (1). The Java suite now has **93 tests**.
+New example tests from mutation testing (P019): `InputValidatorTest` (6), `model.SlotAndTimeGridTest` (3, including the `tr-TR` locale test), `CsvSupportTest` (1). The Java suite now has **93 tests** (113 with the P020 solver-service tests).
 
 ### Solver service (`server` package, new in P020)
 
