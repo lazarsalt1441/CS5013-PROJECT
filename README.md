@@ -6,11 +6,22 @@ Documentation: [docs_v3](docs_v3/README.md) describes this version. [docs_v2](do
 
 **Design:** [DESIGN.md](DESIGN.md) covers goals, requirements, alternatives considered, test strategy and risks. **Project status:** [FUNCTIONALITY_AND_PROGRESS.md](FUNCTIONALITY_AND_PROGRESS.md) covers what the tool does today and how the project progressed from v1 to v3.
 
+## Live deployment
+
+| What | Where |
+|---|---|
+| Preference portal (students, professors) | https://cs5013-project-portal.vercel.app |
+| Published slotbook with explanations | https://cs5013-project-portal.vercel.app/results |
+| Admin dashboard (password protected) | https://cs5013-project-portal.vercel.app/admin |
+| Solver web service, used by "Generate slotbook" | https://slotbook-solver.onrender.com/health |
+
+The solver service runs on a free plan that sleeps after about 15 minutes idle; open its `/health` link first and allow up to a minute. Setup is in [portal/README.md](portal/README.md#the-solver-service-p020). The manual route (download CSVs, `sh scripts/live-demo.sh`, upload the two outputs) works without it.
+
 ## What changed in v3
 
 - The preference portal stores data in **Postgres on Neon** instead of Google Sheets, with migrations, database constraints and transactions.
 - Professors declare **prerequisites**. Students upload their **PDF grade card** (U, W and I do not count as completed). The portal and the CLI both report **advisory warnings**, never enforcement, with identical codes checked by a shared golden file.
-- A `slotbook(1)` man page, a manual covering the CLI and portal options, and a [test plan](docs_v3/TEST_PLAN.md) listing all 93 Java and 75 portal tests, including stress, property-based and mutation testing.
+- A `slotbook(1)` man page, a manual covering the CLI and portal options, and a [test plan](docs_v3/TEST_PLAN.md) listing all 113 Java and 75 portal tests, including stress, property-based and mutation testing.
 
 The solver, its model and its objective are unchanged from v2.
 
