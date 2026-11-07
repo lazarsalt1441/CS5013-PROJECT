@@ -30,9 +30,9 @@
 \begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
   \item[Team Name:]         TT generator
   \item[Repository:]      \url{https://github.com/lazarsalt1441/CS5013-PROJECT}
-  \item[Submission commit:] \texttt{33789f4}, tagged \texttt{final-submission} (date: \texttt{2026-11-08}).
-  \item[Docker image:]    \todo{Google Drive link to slotbook-33789f4.tar.gz}
-  \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable from course and preference data without breaking any hard rule, and explains why each course got its slot.}
+  \item[Submission commit:] \texttt{final-submission} = \texttt{33789f4222c08f9089d44b3b32230e458e4941c2} (date: \texttt{2026-11-08}).
+  \item[Docker image:]    \todo{Google Drive link to slotbook-33789f4.tar.gz} (view access to course staff).
+  \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable without breaking any hard rule, and explains each course's slot.}
 \end{description}
 
 \textbf{AI-authorship clause.}
@@ -48,7 +48,7 @@ submission commit, in the viva.%
 
 IITM departments assign lecture slots by hand-editing last year's slotbook, so nobody can say why a course got its slot.
 
-We shipped a Java engine that validates five CSV inputs, solves with UniTime's cpsolver (an exact CP-SAT model is kept as a reference), and writes the slotbook with a reason for every assignment and every rejected slot. Students and professors enter preferences on a Vercel portal backed by Postgres, which also warns about missing prerequisites using the student's grade card. The admin's ``Generate slotbook'' button runs the engine as a web service and publishes the result. The portal and prerequisite warnings were added after the proposal.
+We shipped an engine that solves the timetable with UniTime's cpsolver (CP-SAT as an exact reference) and gives a reason for every assignment and every rejected slot. Students and professors submit preferences on a web portal, which warns students about missing prerequisites from their grade card; the admin clicks ``Generate slotbook'' and the explained timetable is published. The portal and prerequisite warnings were added after the proposal.
 
 \textbf{Stakeholder verdict: Accepted} (final demo on Friday, 6 November 2026).
 
@@ -94,10 +94,10 @@ Claude Code about 50\% (engine, portal, tests, docs); ChatGPT about 50\% (design
 Claude Code replaced the Google Sheets backend with a Postgres store, numbered migrations and database-backed tests (\path{portal/api/_store.js}, \texttt{7591cca}); it shipped near as-is once 4 integration tests passed on a real Postgres 16.
 
 \textbf{One substantive failure caught in review.}
-The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (a specification-vs-implementation gap, Module 5); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
+The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (spec drift); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
 
 \textbf{Net-effect sentence.}
-Easy to build with, but even easier to get lost: build features slowly and in stages, never in one shot. For reference, \texttt{docs\_v3/DEBUGGING.md} records 14 faults in AI-assisted code, every one caught by a test or a tool rather than by reading the code.
+Net help, with a condition: easy to build with but even easier to get lost, so we built features slowly and in stages, never in one shot. Of the 14 faults in AI-assisted code recorded in \texttt{docs\_v3/DEBUGGING.md}, every one was caught by a test or a tool, not by reading.
 
 \section{Deployment and stakeholder handoff}
 
@@ -113,7 +113,7 @@ The image holds the engine, CLI and solver web service (\texttt{docker run ... s
 
 \textbf{Where the artefact lives after the course.}
 Code on GitHub; portal at \url{https://cs5013-project-portal.vercel.app}; solver service at \url{https://slotbook-solver.onrender.com}.
-Both run on a team member\'s accounts, to be handed over to the institute administration.
+Both run on a team member's accounts, to be handed over to the institute administration.
 
 \textbf{Stakeholder quote (one sentence, verbatim).}
 \begin{quote}
@@ -126,14 +126,14 @@ Both run on a team member\'s accounts, to be handed over to the institute admini
 \begin{itemize}[leftmargin=*,nosep]
   \item \textbf{Optimality.} UniTime is a heuristic: on 3 of 13 generated scenarios it finished 1--8 points above the CP-SAT optimum.
   \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified. It is not fit for real student data until IITM login exists.
-  \item \textbf{Fixed rooms.} Rooms are fixed per course; capacity is not modelled.
+  \item \textbf{Fixed rooms.} Capacity is not checked: a course larger than its room, or one needing a room chosen, is not handled.
 \end{itemize}
 
 \section{Individual contributions}
 
 \begin{itemize}[leftmargin=*,nosep]
-  \item \textbf{Nishanth S:} v1 (CP-SAT model, explanations, CLI, JavaFX view, test oracles, CI) and v3 (Postgres, prerequisite warnings, stress, property and mutation tests, solver service, Docker).
-  \item \textbf{Sparsh Gupta:} v2 (UniTime solver, real IITM time grid, Sheets-backed portal) and the mid-evaluation showcase.
+  \item \textbf{Nishanth S:} built v1 (CP-SAT model, explanations, CLI, JavaFX view, CI) and v3 (Postgres, prerequisite warnings, solver service, Docker); tested with oracles, stress, property and mutation tests. \todo{who did stakeholder liaison?}
+  \item \textbf{Sparsh Gupta:} built v2 (UniTime solver, real IITM time grid, Sheets-backed portal) and the mid-evaluation showcase; tested UniTime against CP-SAT on every scenario.
 \end{itemize}
 
 \end{document}
