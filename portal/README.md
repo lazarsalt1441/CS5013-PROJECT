@@ -74,16 +74,32 @@ If `SOLVER_API_URL` is configured, **Generate slotbook** sends:
 }
 ```
 
-The endpoint should return:
+(plus `prerequisites_csv` and `completed_courses_csv`). The endpoint returns:
 
 ```json
 {
-  "slotbook": [{ "course_id": "EE2002", "assigned_slot": "B" }],
-  "explanations": [{ "course_id": "EE2002", "explanation": "..." }]
+  "ok": true, "solver": "unitime", "status": "FEASIBLE", "objective": 20,
+  "slotbook": [{ "course_id": "EE2002", "title": "...", "assigned_slot": "B", "...": "..." }],
+  "explanations": [{ "course_id": "EE2002", "assigned_slot": "B", "reasons": "...", "rejected_or_feasible_alternatives": "..." }]
 }
 ```
 
-The Vercel API immediately stores those rows as a new published run. A solver error is shown to the admin as a 502 with the solver's message.
+The Vercel API immediately stores those rows as a new published run. A solver error is shown to the admin as a 502 with the solver's message. `vercel.json` lets `api/solver.js` run for 60 s, so a free host that was asleep has time to wake.
+
+### The solver service (P020)
+
+The Docker image contains the service: `docker run -p 8080:8080 -e SOLVER_API_KEY=... IMAGE serve` (or set `SLOTBOOK_SERVE=1`). It merges the portal's submissions onto `data/feasible`, the dataset this portal's catalog is generated from; a student's or instructor's portal rows replace that person's sample rows. It then solves with the same code as the CLI.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PORT` | 8080 | Port to listen on (set automatically by most hosts) |
+| `SOLVER_API_KEY` | none | Bearer key required on `POST /solve`. Set it in production, and set the same value in Vercel |
+| `SLOTBOOK_BASE` | `/app/data/feasible` | Dataset the submissions are merged onto |
+| `SOLVER_TIME_LIMIT` | 8 | Seconds per solve |
+
+`GET /health` needs no key; open it to wake a sleeping host before a demo.
+
+**Deploy on Render (free):** New → Web Service → connect the GitHub repository → Language **Docker**, branch `main`, instance type **Free** → environment variables `SLOTBOOK_SERVE=1` and `SOLVER_API_KEY=<random string>` → Create. When it shows "Live", open `https://<name>.onrender.com/health`. Then in Vercel set `SOLVER_API_URL=https://<name>.onrender.com/solve` and `SOLVER_API_KEY=<same string>`, and redeploy.
 
 ## 4. Tests
 
