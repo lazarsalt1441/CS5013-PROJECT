@@ -11,7 +11,8 @@
     "test:integration": "node --test tests/integration/*.test.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "dev": "node scripts/dev-server.mjs",
-    "test:stress": "node --test --test-concurrency=1 tests/stress/*.stress.mjs"
+    "test:stress": "node --test --test-concurrency=1 tests/stress/*.stress.mjs",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='api/**' --test-coverage-include='db/**' tests/*.test.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Minimal RFC-4180-compatible reader for the small administrative fixtures. */
-final class CsvSupport {
+public final class CsvSupport {
     private CsvSupport() {}
 
     static List<Map<String, String>> read(Path path) throws IOException {
@@ -34,7 +34,7 @@ final class CsvSupport {
         return rows;
     }
 
-    static List<String> parseLine(String line) {
+    public static List<String> parseLine(String line) {
         List<String> values = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean quoted = false;
