@@ -1,0 +1,137 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=0.7in,top=0.6in,bottom=0.7in]{geometry}
+\usepackage{setspace}
+\setlength{\parskip}{0.3em}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{calc}
+\emergencystretch=1.5em
+
+% Compact section headings.
+\usepackage[compact]{titlesec}
+\titlespacing*{\section}{0pt}{0.8ex plus .2ex minus .1ex}{0.3ex plus .1ex}
+
+\title{CS5013 Final Project Report \\
+       \large\textit{IITM Explainable Slotbook}}
+\author{Nishanth S, EE23B049 \and Sparsh Gupta, EE23B117}
+\date{}
+
+\begin{document}
+\maketitle
+
+\vspace{-2.0em}
+
+\begin{description}[leftmargin=!,labelwidth=\widthof{\textbf{Submission commit:}},nosep,font=\bfseries]
+  \item[Team Name:]         TT generator
+  \item[Repository:]      \url{https://github.com/lazarsalt1441/CS5013-PROJECT}
+  \item[Submission commit:] \texttt{final-submission} = \texttt{33789f4222c08f9089d44b3b32230e458e4941c2} (date: \texttt{2026-11-08}).
+  \item[Docker image:]    \url{https://drive.google.com/drive/folders/1QE943nGJ2SliXU7PvFqpfCq07O2-aM_q}
+  \item[Tagline:]         \textit{It builds an IITM department's weekly lecture-slot timetable without breaking any hard rule, and explains each course's slot.}
+\end{description}
+
+\textbf{AI-authorship clause.}
+\textit{%
+We used AI tools to help draft parts of this report.  The claims,
+numbers, commit references, stakeholder statements, and the Docker
+image are our own; the prose shaping may have been assisted.  We can
+defend every sentence of this report, and every line of code in the
+submission commit, in the viva.%
+}
+
+\section{Executive summary}
+
+IITM departments assign lecture slots by hand-editing last year's slotbook, so nobody can say why a course got its slot.
+
+We shipped an engine that solves the timetable with UniTime's cpsolver (CP-SAT as an exact reference) and gives a reason for every assignment and every rejected slot. Students and professors submit preferences on a web portal, which warns students about missing prerequisites from their grade card; the admin clicks ``Generate slotbook'' and the explained timetable is published. The portal and prerequisite warnings were added after the proposal.
+
+\textbf{Stakeholder verdict: Accepted} (final demo on Friday, 6 November 2026).
+
+\section{Course concepts used in the project}
+
+Java paths are under \path{src/main/java/in/ac/iitm/slotbook/}.
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Module 2 -- Prompt engineering (CoSTAR, negative prompts).}
+        All 20 AI tasks were logged before coding, as the request, a CoSTAR restatement and negative constraints added at review.
+        \path{prompts/PROMPT_LOG.md}; \texttt{ebb9c28} (P015, logged before \texttt{7591cca}).
+  \item \textbf{Module 3 -- Git, Conventional Commits and CI.}
+        Branches and pull requests; GitHub Actions runs both suites against a Postgres service, plus CLI runs on both solvers.
+        \path{.github/workflows/ci.yml}; \texttt{8f2c000} (PR \#1).
+  \item \textbf{Module 4 -- Structured debugging.}
+        14 faults recorded from reproduction to regression test, e.g.\ a race that returned 500s under 25 concurrent writers.
+        \path{docs_v3/DEBUGGING.md}; \texttt{2607a9d}.
+  \item \textbf{Module 4 -- Static analyser first, then the smallest patch.}
+        SpotBugs reported 10 findings; 3 were a real bug (day names broke under a Turkish locale). Now 0, and any new one fails CI.
+        \path{spotbugs-exclude.xml}; \texttt{374d4e7}.
+  \item \textbf{Module 5 -- Independent oracles and stress testing.}
+        A separate checker, penalty calculator and brute-force solver judge both solvers; fuzzing and 300 concurrent requests found 3 faults.
+        \path{src/test/.../testing/ConstraintChecker.java}; \texttt{efdf10d}, \texttt{2607a9d}.
+  \item \textbf{Module 5 -- Property-based and mutation testing.}
+        jqwik found on its first run that meetings that only touch were counted as clashes; PIT raised the mutation score from 91.0\% to 98.7\% (2 equivalent mutants left), now gated at 97\%.
+        \path{src/test/.../model/SlotPropertiesTest.java}; \texttt{82cc7f1}, \texttt{fc462ab}.
+  \item \textbf{Module 5 -- Documentation as code.}
+        A man page linted by CI, a manual, and a test plan listing every test.
+        \path{man/slotbook.1}, \path{docs_v3/TEST_PLAN.md}; \texttt{9ee919b}.
+  \item \textbf{Module 7 -- Licences and provenance.}
+        Licences of all 16 runtime dependencies are generated in CI and shipped in the image; LGPL cpsolver stays a replaceable jar.
+        \path{THIRD_PARTY_NOTICES.md}; \texttt{406b360}.
+  \item \textbf{Module 9 -- Supply chain and secrets.}
+        Lockfile with \texttt{npm ci}, \texttt{npm audit} gate (0 vulnerabilities), \texttt{DATABASE\_URL} only from the environment, a non-root image scanned for secrets.
+        \path{.github/workflows/quality.yml}; \texttt{95fb07f}, \texttt{f47ae1c}.
+\end{itemize}
+
+\section{AI-usage summary}
+
+\textbf{Tools used.}
+Claude Code about 50\% (engine, portal, tests, docs); ChatGPT about 50\% (design, Vercel, Neon and Render setup).
+
+\textbf{One substantive help.}
+Claude Code replaced the Google Sheets backend with a Postgres store, numbered migrations and database-backed tests (\path{portal/api/_store.js}, \texttt{7591cca}); it shipped near as-is once 4 integration tests passed on a real Postgres 16.
+
+\textbf{One substantive failure caught in review.}
+The AI-written admin-dashboard check counted U and W grades as completed, contradicting our rule (spec drift); a golden file shared with the Java CLI caught it before merge (\path{portal/api/_prerequisites.js}, \texttt{f528505}).
+
+\textbf{Net-effect sentence.}
+Net help, with a condition: easy to build with but even easier to get lost, so we built features slowly and in stages, never in one shot. Of the 14 faults in AI-assisted code recorded in \texttt{docs\_v3/DEBUGGING.md}, every one was caught by a test or a tool, not by reading.
+
+\section{Deployment and stakeholder handoff}
+
+\textbf{Build and run.}
+\begin{verbatim}
+  docker load -i slotbook-33789f4.tar.gz
+  docker run --rm slotbook:33789f4        # solves data/feasible, prints the slotbook
+  mkdir -p out && docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/out:/out" \
+      slotbook:33789f4 --input data/demo-showcase --output /out   # CSVs land in ./out
+\end{verbatim}
+\vspace{-0.5em}
+The image holds the engine, CLI and solver web service (\texttt{docker run ... serve}); the portal runs on Vercel.
+
+\textbf{Where the artefact lives after the course.}
+Code on GitHub; portal at \url{https://cs5013-project-portal.vercel.app}; solver service at \url{https://slotbook-solver.onrender.com}.
+Both run on a team member's accounts, to be handed over to the institute administration.
+
+\textbf{Stakeholder quote (one sentence, verbatim).}
+\begin{quote}
+\textit{``The project works as per the expectations given. To integrate it with IITM's data, the admin would need to make some modifications to get data from their databases, but this is good enough from your side.''\\
+-- Meghana Nasre, in charge of the slotbook, CS Department, 6 November 2026.}
+\end{quote}
+
+\section{Known limitations}
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Optimality.} UniTime is a heuristic: on 3 of 13 generated scenarios it finished 1--8 points above the CP-SAT optimum.
+  \item \textbf{No identity on the portal.} Anyone can submit under any student ID, and grade cards are self-uploaded and unverified. It is not fit for real student data until IITM login exists.
+  \item \textbf{Fixed rooms.} Capacity is not checked: a course larger than its room, or one needing a room chosen, is not handled.
+\end{itemize}
+
+\section{Individual contributions \textit{(omit if solo)}}
+
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Nishanth S:} built v1 (CP-SAT model, explanations, CLI, JavaFX view, CI) and v3 (Postgres, prerequisite warnings, solver service, Docker); tested with oracles, stress, property and mutation tests.
+  \item \textbf{Sparsh Gupta:} built v2 (UniTime solver, real IITM time grid, Sheets-backed portal) and the mid-evaluation showcase; tested UniTime against CP-SAT on every scenario.
+  \item \textbf{Both:} stakeholder liaison with Meghana Nasre, demos and requirement changes.
+\end{itemize}
+
+\end{document}

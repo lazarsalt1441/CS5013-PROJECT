@@ -19,4 +19,9 @@ docs_design/*.log
 docs_design/*.fls
 docs_design/*.fdb_latexmk
 docs_design/*.out
+report/*.aux
+report/*.log
+report/*.fls
+report/*.fdb_latexmk
+report/*.out
 demo-live/
